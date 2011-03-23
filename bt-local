@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'andand'
+require 'fileutils'
+require 'tmpdir'
 require 'trollop'
 require 'yaml'
 
@@ -16,16 +19,57 @@ def done
   end
 end
 
+def stages
+  # TODO: Enforce stages being politely named.
+  Hash[Dir['stages/*'].map { |fn| [File.basename(fn), YAML.load_file(fn)] }]
+end
+
+def stage(name)
+  stages[name]
+end
+
 def ready
-  stages = Hash[Dir['stages/*'].map { |fn| [File.basename(fn), YAML.load_file(fn)] }]
   dones = done
 
   [].tap do |readies|
     stages.each do |name, info|
-      needs = info[:needs] ? [info[:needs]].flatten - dones : []
+      needs = info['needs'] ? info['needs'] - dones : []
       readies << name if needs.empty?
     end
   end - dones
+end
+
+def branch_name(ref, stage)
+  "bt/#{commit ref}/#{stage}"
+end
+
+def go(stage_name)
+  branch = branch_name('HEAD', stage_name)
+
+  Dir.mktmpdir do |tmp_dir|
+    system "git clone --recursive -- . #{tmp_dir}"
+
+    FileUtils.cd(tmp_dir) do |build_dir|
+      s = stage(stage_name)
+
+      # Build
+      log = `#{s['run']} 2>&1`
+      status = $?.exitstatus.zero? ? :PASS : :FAIL
+
+      # Add files
+      s['results'].andand.each { |fn| system "git add #{fn}" }
+      IO.popen("git commit --allow-empty --cleanup=verbatim --file=-", "w+") do |pipe|
+        pipe.puts "#{status.to_s} bt loves you"
+        pipe.puts
+
+        pipe << log
+        pipe.close_write
+      end
+    end
+
+    # Merge back
+    system "git fetch #{tmp_dir} HEAD:#{branch}"
+  end
 end
 
 SUB_COMMANDS = %w(ready go)
@@ -37,11 +81,12 @@ end
 command = ARGV.shift
 command_opts = case command
                when "ready"
-                 Trollop::options do
-                   # TODO: Resource tags.
-                 end
+                 ready.each { |s| puts s }
+               when "go"
+                 stage = ready.first
+                 Trollop::die "no stage to build" unless stage
 
-                 p ready
+                 go stage
                else
                  Trollop::die "unknown subcommand #{command.inspect}"
                end
