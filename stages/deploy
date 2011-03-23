@@ -1,0 +1,2 @@
+needs: build
+run: test "`cat new-file`" = "hello"
