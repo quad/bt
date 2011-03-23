@@ -40,6 +40,7 @@ def ready
 end
 
 def branch_name(ref, stage)
+  # TODO: Unique identifier after the stage.
   "bt/#{commit ref}/#{stage}"
 end
 
@@ -51,6 +52,12 @@ def go(stage_name)
 
     FileUtils.cd(tmp_dir) do |build_dir|
       s = stage(stage_name)
+
+      # Merge
+      s['needs'].andand.each do |sn|
+        system "git pull --squash origin #{branch_name 'HEAD', sn}"
+      end
+      system "git reset --mixed HEAD"
 
       # Build
       log = `#{s['run']} 2>&1`
