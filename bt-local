@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+require 'trollop'
+require 'yaml'
+
+def commit(name)
+  `git rev-parse --verify #{name}`.strip
+end
+
+def done
+  [].tap do |oks|
+    `git show-branch --list bt/#{commit 'HEAD'}/*`.each_line do |branch_line|
+      %r{ \[bt/(?<hash>[0-9a-f]+)/(?<stage>\w+)\] (?<status>OK|PASS|FAIL|NO) } =~ branch_line
+      oks << stage if ['OK', 'PASS'].include? status
+    end
+  end
+end
+
+def ready
+  stages = Hash[Dir['stages/*'].map { |fn| [File.basename(fn), YAML.load_file(fn)] }]
+  dones = done
+
+  [].tap do |readies|
+    stages.each do |name, info|
+      needs = info[:needs] ? [info[:needs]].flatten - dones : []
+      readies << name if needs.empty?
+    end
+  end - dones
+end
+
+SUB_COMMANDS = %w(ready go)
+global_opts = Trollop::options do
+  banner "build thing (local)"
+  stop_on SUB_COMMANDS
+end
+
+command = ARGV.shift
+command_opts = case command
+               when "ready"
+                 Trollop::options do
+                   # TODO: Resource tags.
+                 end
+
+                 p ready
+               else
+                 Trollop::die "unknown subcommand #{command.inspect}"
+               end
