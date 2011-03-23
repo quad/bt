@@ -1,2 +1,3 @@
 run: ./build
-result: new-file
+result:
+  - new-file
