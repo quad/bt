@@ -21,8 +21,9 @@ end
 
 def stages
   # TODO: Enforce stages being politely named.
-  # TODO: Use 'ls-tree' to pull stages from the commit.
-  Hash[Dir['stages/*'].map { |fn| [File.basename(fn), YAML.load_file(fn)] }]
+  Hash[`git ls-tree --name-only HEAD stages/`.split.map do |fn|
+    [File.basename(fn), YAML.load(`git cat-file blob HEAD:#{fn}`)]
+  end]
 end
 
 def stage(name)
