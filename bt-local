@@ -6,6 +6,8 @@ require 'tmpdir'
 require 'trollop'
 require 'yaml'
 
+CONFIG = YAML.load(File.open("./.bt"))
+
 def commit(name)
   `git rev-parse --verify #{name}`.strip
 end
@@ -67,7 +69,7 @@ def go(stage_name)
 
       # Add files
       s['results'].andand.each { |fn| system "git add #{fn}" }
-      IO.popen("git commit --allow-empty --cleanup=verbatim --file=-", "w+") do |pipe|
+      IO.popen("git commit --author=\"#{CONFIG['bt']['author']}\" --allow-empty --cleanup=verbatim --file=-", "w+") do |pipe|
         pipe.puts "#{status.to_s} bt loves you"
         pipe.puts
 
