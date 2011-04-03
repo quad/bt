@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'trollop'
+require 'bt'
+
+module BT
+  COMMANDS = %w(ready go watch)
+  global_opts = Trollop::options do
+    banner 'build thing'
+    # TODO: Help on which commands are available.
+    opt :repository, 'git repository', :type => :string, :default => '.'
+    stop_on COMMANDS
+  end
+
+  repo = Repository.new global_opts.repository
+
+  command = ARGV.shift
+  command_opts = case command
+                 when 'ready'
+                   repo.ready.each { |s| puts s }
+                 when 'go'
+                   stage = repo.ready.first
+                   Trollop::die "no stage to build" unless stage
+
+                   stage.build
+                 when nil
+                   Trollop::die "need a command"
+                 else
+                   Trollop::die "unknown command #{command.inspect}"
+                 end
+end
