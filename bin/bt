@@ -19,7 +19,7 @@ module BT
   command = ARGV.shift
   command_opts = case command
                  when 'ready'
-                   repo.ready.each { |s| puts s }
+                   repo.ready.each { |s| puts s.name }
                  when 'go'
                    stage = repo.ready.first
                    Trollop::die "no stage to build" unless stage
