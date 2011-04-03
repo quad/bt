@@ -10,7 +10,7 @@ module BT
   global_opts = Trollop::options do
     banner 'build thing'
     # TODO: Help on which commands are available.
-    opt :repository, 'git repository', :type => :string, :default => '.'
+    opt :repository, 'git repository', :type => :string, :default => Dir.pwd
     stop_on COMMANDS
   end
 
