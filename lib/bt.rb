@@ -71,6 +71,15 @@ module BT
       end
     end
 
+    def lead(&block)
+      raise NotImplementedError
+
+      # mDNS magic goes here.
+      # Spawn a thread to keep the record refreshed.
+      yield if block_given?
+      # Cleanup that thread.
+    end
+
     private
     def merge!(hash)
       hash.each_pair { |k, v| self[k] = v }
@@ -108,6 +117,10 @@ module BT
           `git #{cmd}`
         end
       end
+    end
+
+    def bare
+      raise NotImplementedError
     end
 
     private

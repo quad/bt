@@ -25,6 +25,18 @@ module BT
                    Trollop::die "no stage to build" unless stage
 
                    stage.build
+                 when 'watch'
+                   repo.bare do |b|
+                     while true
+                       b.pull
+
+                       b.ready.first.lead do |stage|
+                         b.push if stage.build
+                       end
+
+                       sleep 5
+                     end
+                   end
                  when nil
                    Trollop::die "need a command"
                  else
