@@ -1,8 +1,11 @@
 module BT
   require 'andand'
+  require 'dnssd'
   require 'forwardable'
-  require 'yaml'
   require 'tmpdir'
+  require 'yaml'
+
+  MSG = 'bt loves you'
 
   class Commit < Struct.new(:repository, :name, :id)
     extend Forwardable
@@ -39,6 +42,8 @@ module BT
     end
 
     def build
+      status = nil
+
       # TODO: Log the whole build transaction.
       Dir.mktmpdir do |tmp_dir|
         repository.git "clone --recursive -- . #{tmp_dir}", :system
@@ -53,12 +58,12 @@ module BT
 
           # Build
           log = `#{run} 2>&1`
-          status = $?.exitstatus.zero? ? :PASS : :FAIL
+          status = $?.exitstatus.zero?
 
           # Commit results
           results.each { |fn| r.git "add #{fn}" }
           r.git "commit --allow-empty --cleanup=verbatim --file=-" do |pipe|
-            pipe.puts "#{status.to_s} bt loves you"
+            pipe.puts "#{status ? :PASS : :FAIL} #{MSG}"
             pipe.puts
 
             pipe << log
@@ -69,15 +74,15 @@ module BT
         # Merge back
         repository.git "fetch #{tmp_dir} HEAD:#{branch_name}", :system
       end
+
+      status
     end
 
     def lead(&block)
-      raise NotImplementedError
-
-      # mDNS magic goes here.
-      # Spawn a thread to keep the record refreshed.
-      yield if block_given?
-      # Cleanup that thread.
+      DNSSD.register! commit.id, '_x-build-thing._tcp', nil, $$, do |r|
+        yield self if block_given? && r.name == commit.id
+        break
+      end
     end
 
     private
@@ -87,6 +92,15 @@ module BT
   end
 
   class Repository < Struct.new(:path)
+    def self.bare(path, &block)
+      Dir.mktmpdir do |tmp_dir|
+        system "git clone --mirror -- #{path} #{tmp_dir}"
+        raise "FAIL" unless $?.exitstatus.zero?
+
+        yield new tmp_dir
+      end
+    end
+
     def initialize(path, &block)
       super(path)
       @head = Commit.new self, 'HEAD'
@@ -119,8 +133,12 @@ module BT
       end
     end
 
-    def bare
-      raise NotImplementedError
+    def pull
+      git 'fetch origin', :system
+    end
+
+    def push
+      git 'push origin', :system
     end
 
     private

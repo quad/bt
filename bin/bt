@@ -8,38 +8,72 @@ require 'bt'
 module BT
   COMMANDS = %w(ready go watch)
   global_opts = Trollop::options do
-    banner 'build thing'
-    # TODO: Help on which commands are available.
-    opt :repository, 'git repository', :type => :string, :default => Dir.pwd
+    banner <<-EOS
+build thing
+
+Usage:
+\tbt [command] ...
+Commands:
+\t#{COMMANDS.join "\n\t"}
+    EOS
     stop_on COMMANDS
   end
 
-  repo = Repository.new global_opts.repository
+  def self.single_repo_cmd(command, help, &block)
+    Trollop::options do
+      banner <<-EOS
+#{help}
+
+Usage:
+\tbt #{command} [repository]
+EOS
+    end
+    yield Repository.new ARGV.shift || Dir.pwd
+  end
 
   command = ARGV.shift
   command_opts = case command
                  when 'ready'
-                   repo.ready.each { |s| puts s.name }
-                 when 'go'
-                   stage = repo.ready.first
-                   Trollop::die "no stage to build" unless stage
+                   single_repo_cmd(command, 'List of stages ready to go') do |r|
+                     r.ready.each { |s| puts s.name }
+                   end
 
-                   stage.build
+                 when 'go'
+                   single_repo_cmd(command, 'Build a ready stage') do |r|
+                     stage = r.ready.first
+                     Trollop::die "no stage to build" unless stage
+
+                     stage.build
+                   end
+
                  when 'watch'
-                   repo.bare do |b|
+                   opts = Trollop::options do
+                     banner <<-EOS
+Watch and build stages ready to go on a repository
+
+Usage:
+\tbt watch [repository]
+EOS
+                     opt :wait, 'time to wait between builds', :type => :int, :default => 5
+                   end
+
+                   Repository::bare(ARGV.shift || Dir.pwd) do |b|
                      while true
                        b.pull
 
-                       b.ready.first.lead do |stage|
+                       b.ready.first.andand.lead do |stage|
                          b.push if stage.build
                        end
 
-                       sleep 5
+                       sleep opts[:wait]
                      end
                    end
+
                  when nil
                    Trollop::die "need a command"
+
                  else
                    Trollop::die "unknown command #{command.inspect}"
+
                  end
 end
