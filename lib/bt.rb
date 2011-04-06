@@ -103,8 +103,12 @@ module BT
 
     def initialize(path, &block)
       super(path)
-      @head = Commit.new self, 'HEAD'
+      refresh
       Dir.chdir(path) { yield self } if block_given?
+    end
+
+    def refresh
+      @head = Commit.new self, 'HEAD'
     end
 
     def ready

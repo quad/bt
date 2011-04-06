@@ -60,6 +60,7 @@ EOS
                    Repository::bare(ARGV.shift || Dir.pwd) do |b|
                      while true
                        b.pull
+                       b.refresh
 
                        b.ready.first.andand.lead do |stage|
                          b.push if stage.build
