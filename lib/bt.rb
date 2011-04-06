@@ -62,7 +62,7 @@ module BT
 
           # Commit results
           results.each { |fn| r.git "add #{fn}" }
-          r.git "commit --allow-empty --cleanup=verbatim --file=-" do |pipe|
+          r.git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
             pipe.puts "#{status ? :PASS : :FAIL} #{MSG}"
             pipe.puts
 
