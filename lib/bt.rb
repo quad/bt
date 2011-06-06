@@ -57,13 +57,12 @@ module BT
           r.git "reset --mixed #{commit.id}", :system
 
           # Build
-          log = `#{run} 2>&1`
-          status = $?.exitstatus.zero?
+          status, log = run
 
           # Commit results
           results.each { |fn| r.git "add #{fn}" }
           r.git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
-            pipe.puts "#{status ? :PASS : :FAIL} #{MSG}"
+            pipe.puts "#{status.zero? ? :PASS : :FAIL} #{MSG}"
             pipe.puts
 
             pipe << log
@@ -92,6 +91,15 @@ module BT
     private
     def merge!(hash)
       hash.each_pair { |k, v| self[k] = v }
+    end
+
+    def run
+      #TODO: Get a real logger
+      output = ""
+      IO.popen(self[:run]) do |io|
+        io.each_char { |char| [output, $stdout].each {|o| o << char } }
+      end
+      [$?.exitstatus, output]
     end
   end
 
