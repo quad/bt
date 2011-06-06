@@ -85,6 +85,10 @@ module BT
       end
     end
 
+    def ready? dones
+      (needs - dones).empty?
+    end
+
     private
     def merge!(hash)
       hash.each_pair { |k, v| self[k] = v }
@@ -114,13 +118,7 @@ module BT
     def ready
       dones = done
 
-      # TODO: This could probably be expressed nicer.
-      [].tap do |readies|
-        (stages - dones).each do |stage|
-          needs = stage.needs - dones
-          readies << stage if needs.empty?
-        end
-      end - dones
+      incomplete.select { |stage| stage.ready? dones }
     end
 
     def git(cmd, *options, &block)
@@ -159,6 +157,10 @@ module BT
           oks << stage if ['OK', 'PASS'].include? status
         end
       end.map { |s| Stage.new @head, "stages/#{s}" }
+    end
+
+    def incomplete
+      stages - done
     end
   end
 end
