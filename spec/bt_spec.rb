@@ -1,83 +1,81 @@
 require 'bt'
 require 'grit'
 
-describe "a repo with a bt build" do
-  before do
-    @repo = BT::Builder.repo_at(Dir.mktmpdir) do |r|
-      r.stage 'first', <<-eos
-run: echo \"blah\" > new_file
-results:
-  - new_file
+describe BT do
+  def self.project &block
+    let!(:project) { BT::Project.at(Dir.mktmpdir, &block) }
+
+    subject { project }
+  end
+
+  describe "a repo with a bt build" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: echo \"blah\" > new_file
+  results:
+    - new_file
       eos
     end
-
-    %x{./bin/bt go #{@repo.working_dir} 2> /dev/null}
-
-    @initial_commit = @repo.commits.first
-  end
-
-  subject { @repo }
-
-  it { should have_head "bt/#{@initial_commit.sha}/first" }
-
-  context "its results tree" do
-    subject { @repo.tree("bt/#{@initial_commit.sha}/first") }
-
-    it { should have_file_content('new_file', "blah\n") }
-  end
-end
-
-describe "a repo with two dependent stages" do
-  before do
-    @repo = BT::Builder.repo_at(Dir.mktmpdir) do |r|
-      r.stage 'first', <<-eos
-run: echo \"blah\" > new_file
-results:
-  - new_file
-      eos
-
-      r.stage 'second', <<-eos
-run: echo \"blah blah\" >> new_file
-needs:
-  - first
-results:
-  - new_file
-      eos
-    end
-  end
-
-  subject { @repo }
-
-  let(:first_commit) { @repo.commits.first }
-  
-  context "first stage built" do
-    before { %x{./bin/bt go #{@repo.working_dir} 2> /dev/null}; }
     
-    it { should have_head "bt/#{first_commit.sha}/first" }
+    before { project.build and @initial_commit = project.repo.commits.first }
+
+    it { should have_head "bt/#{@initial_commit.sha}/first" }
 
     context "its results tree" do
-      subject { @repo.tree("bt/#{first_commit.sha}/first") }
+      subject { project.repo.tree("bt/#{@initial_commit.sha}/first") }
 
       it { should have_file_content('new_file', "blah\n") }
     end
- end
+  end
 
-  context "second stage built" do
-    before { 2.times { %x{./bin/bt go #{@repo.working_dir} 2> /dev/null} } }
+  describe "a repo with two dependent stages" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: echo \"blah\" > new_file
+  results:
+    - new_file
+      eos
 
-    it { should have_head "bt/#{first_commit.sha}/second" }
+      p.stage :second, <<-eos
+  run: echo \"blah blah\" >> new_file
+  needs:
+    - first
+  results:
+    - new_file
+      eos
+    end
 
-    context "its results tree" do
-      subject { @repo.tree("bt/#{first_commit.sha}/second") }
+    let(:first_commit) { project.repo.commits.first }
+    
+    context "with first stage built" do
+      before { project.build }
+      
+      it { should have_head "bt/#{first_commit.sha}/first" }
 
-      it { should have_file_content('new_file', "blah\nblah blah\n") }
+      context "its results tree" do
+        subject { project.repo.tree("bt/#{first_commit.sha}/first") }
+
+        it { should have_file_content('new_file', "blah\n") }
+      end
+   end
+
+    context "with second stage built" do
+      before { 2.times { project.build } }
+
+      it { should have_head "bt/#{first_commit.sha}/second" }
+
+      context "its results tree" do
+        subject { project.repo.tree("bt/#{first_commit.sha}/second") }
+
+        it { should have_file_content('new_file', "blah\nblah blah\n") }
+      end
     end
   end
 end
 
 RSpec::Matchers.define :have_head do |head|
-  match do |repo|
-    repo.is_head?(head)
+  match do |project|
+    project.repo.is_head?(head)
   end
 end
 
@@ -88,10 +86,10 @@ RSpec::Matchers.define :have_file_content do |name, content|
 end
 
 module BT
-  class Builder
-    def self.repo_at dir, &block
+  class Project
+    def self.at dir, &block
       FileUtils.cd(dir) do |dir|
-        return new(dir, &block).repo
+        return new(dir, &block)
       end
     end
 
@@ -105,10 +103,14 @@ module BT
 
     def stage name, stage_config
       FileUtils.makedirs("#{@repo.working_dir}/stages")
-      File.open("#{@repo.working_dir}/stages/#{name}", 'w') do |f|
+      File.open("#{@repo.working_dir}/stages/#{name.to_s}", 'w') do |f|
         f.write(stage_config)
       end
-      @repo.add "stages/#{name}"
+      @repo.add "stages/#{name.to_s}"
+    end
+
+    def build
+      %x{./bin/bt go #{repo.working_dir} 2> /dev/null}
     end
   end
 end
