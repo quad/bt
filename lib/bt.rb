@@ -60,14 +60,8 @@ module BT
           status, log = run
 
           # Commit results
-          results.each { |fn| r.git "add #{fn}" }
-          r.git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
-            pipe.puts "#{status.zero? ? :PASS : :FAIL} #{MSG}"
-            pipe.puts
-
-            pipe << log
-            pipe.close_write
-          end
+          message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
+          r.commit message, results
         end
 
         # Merge back
@@ -127,6 +121,14 @@ module BT
       dones = done
 
       incomplete.select { |stage| stage.ready? dones }
+    end
+
+    def commit message, files = []
+      files.each { |fn| git "add #{fn}" }
+      git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
+        pipe << message
+        pipe.close_write
+      end
     end
 
     def git(cmd, *options, &block)
