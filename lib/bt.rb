@@ -2,6 +2,7 @@ module BT
   require 'andand'
   require 'dnssd'
   require 'forwardable'
+  require 'tempfile'
   require 'tmpdir'
   require 'yaml'
 
@@ -88,12 +89,10 @@ module BT
     end
 
     def run
-      #TODO: Get a real logger
-      output = ""
-      IO.popen(self[:run]) do |io|
-        io.each_char { |char| [output, $stdout].each {|o| o << char } }
+      Tempfile.open("bt-#{commit.id}-#{name}.log") do |f|
+        system "( #{self[:run]} ) | tee '#{f.path}'"
+        [$?.exitstatus, f.read]
       end
-      [$?.exitstatus, output]
     end
   end
 
