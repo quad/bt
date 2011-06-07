@@ -57,6 +57,12 @@ describe BT do
 
         it { should have_file_content('new_file', "blah\n") }
       end
+
+      context "its commit" do
+        subject { project.repo.get_head("bt/#{first_commit.sha}/first").commit }
+
+        its(:message) { should == "PASS bt loves you" }
+      end
    end
 
     context "with second stage built" do
@@ -68,6 +74,12 @@ describe BT do
         subject { project.repo.tree("bt/#{first_commit.sha}/second") }
 
         it { should have_file_content('new_file', "blah\nblah blah\n") }
+      end
+    
+      context "its commit" do
+        subject { project.repo.get_head("bt/#{first_commit.sha}/first").commit }
+
+        its(:message) { should == "PASS bt loves you" }
       end
     end
   end
@@ -110,7 +122,9 @@ module BT
     end
 
     def build
-      %x{./bin/bt go #{repo.working_dir} 2> /dev/null}
+      IO.popen("./bin/bt go #{repo.working_dir} 2>&1") do |io|
+        io.read
+      end
     end
   end
 end
