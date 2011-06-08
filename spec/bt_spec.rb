@@ -122,10 +122,7 @@ module BT
     end
 
     def build
-      IO.popen("./bin/bt go #{repo.working_dir} 2>&1") do |io|
-        io.read
-      end
-
+      %x{./bin/bt go #{repo.working_dir} 2>&1}
       $?.exitstatus.zero?
     end
   end

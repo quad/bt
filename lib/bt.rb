@@ -161,18 +161,20 @@ module BT
 
     private
     def stages
-      git("ls-tree --name-only #{@head.id} stages/").split.map do |fn|
-        Stage.new(@head, fn)
+      (@repo.tree(@head.id) / 'stages').blobs.map do |stage_blob|
+        Stage.new(@head, "stages/#{stage_blob.basename}")
       end
     end
 
     def done
-      [].tap do |oks|
-        git("show-branch --list bt/#{@head.id}/*").each_line do |branch_line|
-          %r{ \[bt/(?<hash>[0-9a-f]+)/(?<stage>\w+)\] (?<status>OK|PASS|FAIL|NO) } =~ branch_line
-          oks << stage if ['OK', 'PASS'].include? status
+      stages.select do |stage|
+        stage_branch = @repo.get_head(stage.branch_name)
+        if stage_branch
+          ['OK', 'PASS'].any? {|status| stage_branch.commit.message.start_with? status}
+        else
+          false
         end
-      end.map { |s| Stage.new @head, "stages/#{s}" }
+      end
     end
 
     def incomplete
