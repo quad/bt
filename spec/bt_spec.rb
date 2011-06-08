@@ -17,7 +17,7 @@ describe BT do
       eos
     end
     
-    before { project.build and @initial_commit = project.repo.commits.first }
+    before { project.build and @initial_commit = project.repo.commits.first; p project.repo.commits }
 
     it { should have_head "bt/#{@initial_commit.sha}/first" }
 
@@ -125,6 +125,8 @@ module BT
       IO.popen("./bin/bt go #{repo.working_dir} 2>&1") do |io|
         io.read
       end
+
+      $?.exitstatus.zero?
     end
   end
 end

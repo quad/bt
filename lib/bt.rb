@@ -103,7 +103,6 @@ module BT
         repo = Grit::Repo.new(path)
         tmp_repo = repo.git.clone({:mirror => true}, path, tmp_dir)
         Grit::Repo.init_bare(tmp_dir) #This will throw exceptions if the repo is bad
-
         yield new tmp_dir
       end
     end
@@ -111,6 +110,9 @@ module BT
     def initialize(path, &block)
       super(path)
       refresh
+      
+      @repo = Grit::Repo.new(path)
+      
       Dir.chdir(path) { yield self } if block_given?
     end
 
@@ -126,10 +128,13 @@ module BT
 
     def commit message, files = []
       files.each { |fn| git "add #{fn}" }
-      git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
-        pipe << message
-        pipe.close_write
-      end
+      @repo.git.commit({
+        :raise => true,
+        :author=>'Build Thing <build@thing.invalid>',
+        :"allow-empty" => true, 
+        :cleanup=>'verbatim',
+        :message => "#{message.strip}"
+      })
     end
 
     def git(cmd, *options, &block)
