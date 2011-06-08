@@ -17,7 +17,7 @@ describe BT do
       eos
     end
     
-    before { project.build and @initial_commit = project.repo.commits.first; p project.repo.commits }
+    before { project.build and @initial_commit = project.repo.commits.first; }
 
     it { should have_head "bt/#{@initial_commit.sha}/first" }
 

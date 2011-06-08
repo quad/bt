@@ -152,11 +152,11 @@ module BT
     end
 
     def pull
-      git 'fetch origin', :system
+      @repo.git.fetch({}, 'origin')
     end
 
     def push
-      git 'push origin', :system
+      @repo.git.push({}, 'origin')
     end
 
     private
