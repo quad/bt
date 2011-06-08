@@ -5,6 +5,7 @@ module BT
   require 'tempfile'
   require 'tmpdir'
   require 'yaml'
+  require 'grit'
 
   MSG = 'bt loves you'
 
@@ -99,8 +100,9 @@ module BT
   class Repository < Struct.new(:path)
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
-        system "git clone --mirror -- #{path} #{tmp_dir}"
-        raise "FAIL" unless $?.exitstatus.zero?
+        repo = Grit::Repo.new(path)
+        tmp_repo = repo.git.clone({:mirror => true}, path, tmp_dir)
+        Grit::Repo.init_bare(tmp_dir) #This will throw exceptions if the repo is bad
 
         yield new tmp_dir
       end
