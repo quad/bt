@@ -93,9 +93,8 @@ module BT
     
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
-        repo = Grit::Repo.new(path)
-        tmp_repo = repo.git.clone({:mirror => true}, path, tmp_dir)
-        Grit::Repo.init_bare(tmp_dir) #This will throw exceptions if the repo is bad
+        git = Grit::Git.new(path)
+        tmp_repo = git.clone({:raise => true, :mirror => true}, path, "#{tmp_dir}/.git")
         yield new tmp_dir
       end
     end
@@ -106,8 +105,6 @@ module BT
       
       refresh
 
-      @pipeline = Pipeline.new(@repo, @head)
-
       Dir.chdir(path) { yield self } if block_given?
     end
 
@@ -116,7 +113,7 @@ module BT
     end
 
     def refresh
-      @head = @repo.head
+      @pipeline = Pipeline.new(@repo, @repo.head)
     end
 
     def cat_file commit, filename
