@@ -9,15 +9,15 @@ module BT
 
   MSG = 'bt loves you'
   
-  class Stage < Struct.new(:commit, :filename, :needs, :run, :results)
+  class Stage < Struct.new(:pipeline, :commit, :filename, :needs, :run, :results)
     extend Forwardable
 
     def repository
       commit.repo
     end
 
-    def initialize(commit, filename)
-      super(commit, filename, [], nil, [])
+    def initialize(pipeline, commit, filename)
+      super(pipeline, commit, filename, [], nil, [])
       merge! YAML::load (commit.tree / filename).data
     end
 
@@ -27,7 +27,7 @@ module BT
 
     def needs
       self[:needs].map do |stage_name|
-        Stage.new commit, File.join(File.dirname(filename), stage_name)
+        Stage.new self[:pipeline], commit, File.join(File.dirname(filename), stage_name)
       end
     end
 
@@ -72,8 +72,8 @@ module BT
       end
     end
 
-    def ready? dones
-      (needs - dones).empty?
+    def ready?
+      (needs - self[:pipeline].done).empty?
     end
 
     private
@@ -151,14 +151,12 @@ module BT
     end
 
     def ready
-      dones = done
-
-      incomplete.select { |stage| stage.ready? dones }
+      incomplete.select { |stage| stage.ready? }
     end
 
     def stages
       (@head.commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new(@head.commit, "stages/#{stage_blob.basename}")
+        Stage.new(self, @head.commit, "stages/#{stage_blob.basename}")
       end
     end
 
