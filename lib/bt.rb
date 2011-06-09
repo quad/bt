@@ -2,6 +2,7 @@ module BT
   require 'andand'
   require 'dnssd'
   require 'forwardable'
+  require 'tempfile'
   require 'tmpdir'
   require 'yaml'
 
@@ -57,18 +58,11 @@ module BT
           r.git "reset --mixed #{commit.id}", :system
 
           # Build
-          log = `#{run} 2>&1`
-          status = $?.exitstatus.zero?
+          status, log = run
 
           # Commit results
-          results.each { |fn| r.git "add #{fn}" }
-          r.git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
-            pipe.puts "#{status ? :PASS : :FAIL} #{MSG}"
-            pipe.puts
-
-            pipe << log
-            pipe.close_write
-          end
+          message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
+          r.commit message, results
         end
 
         # Merge back
@@ -92,6 +86,13 @@ module BT
     private
     def merge!(hash)
       hash.each_pair { |k, v| self[k] = v }
+    end
+
+    def run
+      Tempfile.open("bt-#{commit.id}-#{name}.log") do |f|
+        system "( #{self[:run]} ) | tee '#{f.path}'"
+        [$?.exitstatus, f.read]
+      end
     end
   end
 
@@ -119,6 +120,14 @@ module BT
       dones = done
 
       incomplete.select { |stage| stage.ready? dones }
+    end
+
+    def commit message, files = []
+      files.each { |fn| git "add #{fn}" }
+      git "commit --author='Build Thing <build@thing.invalid>' --allow-empty --cleanup=verbatim --file=-" do |pipe|
+        pipe << message
+        pipe.close_write
+      end
     end
 
     def git(cmd, *options, &block)
