@@ -32,8 +32,7 @@ module BT
     end
 
     def branch_name
-      # TODO: Unique identifier after the stage.
-      "bt/#{commit.sha}/#{name}"
+      "bt/#{name}/#{commit.sha}"
     end
 
     def build

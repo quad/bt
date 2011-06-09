@@ -19,10 +19,10 @@ describe BT do
     
     before { project.build and @initial_commit = project.repo.commits.first; }
 
-    it { should have_head "bt/#{@initial_commit.sha}/first" }
+    it { should have_head "bt/first/#{@initial_commit.sha}" }
 
     context "its results tree" do
-      subject { project.repo.tree("bt/#{@initial_commit.sha}/first") }
+      subject { project.repo.tree("bt/first/#{@initial_commit.sha}") }
 
       it { should have_file_content('new_file', "blah\n") }
     end
@@ -50,16 +50,16 @@ describe BT do
     context "with first stage built" do
       before { project.build }
       
-      it { should have_head "bt/#{first_commit.sha}/first" }
+      it { should have_head "bt/first/#{first_commit.sha}" }
 
       context "its results tree" do
-        subject { project.repo.tree("bt/#{first_commit.sha}/first") }
+        subject { project.repo.tree("bt/first/#{first_commit.sha}") }
 
         it { should have_file_content('new_file', "blah\n") }
       end
 
       context "its commit" do
-        subject { project.repo.get_head("bt/#{first_commit.sha}/first").commit }
+        subject { project.repo.get_head("bt/first/#{first_commit.sha}").commit }
 
         its(:message) { should == "PASS bt loves you" }
       end
@@ -68,16 +68,16 @@ describe BT do
     context "with second stage built" do
       before { 2.times { project.build } }
 
-      it { should have_head "bt/#{first_commit.sha}/second" }
+      it { should have_head "bt/second/#{first_commit.sha}" }
 
       context "its results tree" do
-        subject { project.repo.tree("bt/#{first_commit.sha}/second") }
+        subject { project.repo.tree("bt/second/#{first_commit.sha}") }
 
         it { should have_file_content('new_file', "blah\nblah blah\n") }
       end
     
       context "its commit" do
-        subject { project.repo.get_head("bt/#{first_commit.sha}/first").commit }
+        subject { project.repo.get_head("bt/second/#{first_commit.sha}").commit }
 
         its(:message) { should == "PASS bt loves you" }
       end
