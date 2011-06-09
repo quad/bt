@@ -126,7 +126,7 @@ module BT
     end
 
     def build
-      %x{./bin/bt go #{repo.working_dir} 2>&1}
+      puts %x{./bin/bt go #{repo.working_dir} 2>&1}
       $?.exitstatus.zero?
     end
   end

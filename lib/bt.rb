@@ -118,7 +118,7 @@ module BT
     end
 
     def refresh
-      @head = Commit.new self, 'HEAD'
+      @head = @repo.head
     end
 
     def ready
@@ -156,8 +156,8 @@ module BT
 
     private
     def stages
-      (@repo.tree(@head.id) / 'stages').blobs.map do |stage_blob|
-        Stage.new(@head, "stages/#{stage_blob.basename}")
+      (@head.commit.tree / 'stages').blobs.map do |stage_blob|
+        Stage.new(Commit.new(self, @head.commit.sha), "stages/#{stage_blob.basename}")
       end
     end
 
