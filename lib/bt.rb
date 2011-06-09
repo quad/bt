@@ -106,17 +106,17 @@ module BT
       
       refresh
 
+      @pipeline = Pipeline.new(@repo, @head)
+
       Dir.chdir(path) { yield self } if block_given?
+    end
+
+    def ready
+      @pipeline.ready
     end
 
     def refresh
       @head = @repo.head
-    end
-
-    def ready
-      dones = done
-
-      incomplete.select { |stage| stage.ready? dones }
     end
 
     def cat_file commit, filename
@@ -145,14 +145,28 @@ module BT
     def push
       @repo.git.push({:raise => true}, 'origin')
     end
+  end
 
-    private
+  class Pipeline
+    def initialize repo, head
+      @repo = repo
+      @head = head
+    end
+
+    def ready
+      dones = done
+
+      incomplete.select { |stage| stage.ready? dones }
+    end
+
     def stages
-      Pipeline.new(@repo, @head).stages
+      (@head.commit.tree / 'stages').blobs.map do |stage_blob|
+        Stage.new(@head.commit, "stages/#{stage_blob.basename}")
+      end
     end
 
     def done
-      stages.select do |stage|
+       stages.select do |stage|
         stage_branch = @repo.get_head(stage.branch_name)
         if stage_branch
           ['OK', 'PASS'].any? {|status| stage_branch.commit.message.start_with? status}
@@ -164,19 +178,6 @@ module BT
 
     def incomplete
       stages - done
-    end
-  end
-
-  class Pipeline
-    def initialize repo, head
-      @repo = repo
-      @head = head
-    end
-
-    def stages
-      (@head.commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new(@head.commit, "stages/#{stage_blob.basename}")
-      end
     end
   end
 end
