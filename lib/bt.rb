@@ -146,20 +146,6 @@ module BT
       @repo.git
     end
 
-    def git_old(cmd, *options, &block)
-      # TODO: More comprehensive error checking.
-      Dir.chdir(path) do
-        if block_given?
-          IO.popen("git #{cmd}", 'w+') { |p| yield p }
-        elsif options.include? :system
-          system "git #{cmd}"
-          raise "FAIL" unless $?.exitstatus.zero?
-        else
-          `git #{cmd}`
-        end
-      end
-    end
-
     def pull
       @repo.git.fetch({:raise => true}, 'origin')
     end
