@@ -9,23 +9,16 @@ module BT
 
   MSG = 'bt loves you'
   
-  class Commit < Struct.new(:repository, :name, :id)
-    extend Forwardable
-
-    def initialize(repository, name)
-      id = repository.git.rev_parse({:verify => true}, name).chomp
-      super(repository, name, id)
-    end
-  end
-
   class Stage < Struct.new(:commit, :filename, :needs, :run, :results)
     extend Forwardable
 
-    def_delegator :commit, :repository
+    def repository
+      commit.repo
+    end
 
     def initialize(commit, filename)
       super(commit, filename, [], nil, [])
-      merge! YAML::load repository.cat_file(commit.id, filename)
+      merge! YAML::load (commit.tree / filename).data
     end
 
     def name
@@ -40,7 +33,7 @@ module BT
 
     def branch_name
       # TODO: Unique identifier after the stage.
-      "bt/#{commit.id}/#{name}"
+      "bt/#{commit.sha}/#{name}"
     end
 
     def build
@@ -56,7 +49,7 @@ module BT
             r.git.pull({:raise => true, :squash => true}, 'origin', n.branch_name)
           end
 
-          r.git.reset({:raise => true, :mixed => true}, commit.id)
+          r.git.reset({:raise => true, :mixed => true}, commit.sha)
 
           # Build
           status, log = run
@@ -74,8 +67,8 @@ module BT
     end
 
     def lead(&block)
-      DNSSD.register! commit.id, '_x-build-thing._tcp', nil, $$, do |r|
-        yield self if block_given? && r.name == commit.id
+      DNSSD.register! commit.sha, '_x-build-thing._tcp', nil, $$, do |r|
+        yield self if block_given? && r.name == commit.sha
         break
       end
     end
@@ -90,7 +83,7 @@ module BT
     end
 
     def run
-      Tempfile.open("bt-#{commit.id}-#{name}.log") do |f|
+      Tempfile.open("bt-#{commit.sha}-#{name}.log") do |f|
         system "( #{self[:run]} ) | tee '#{f.path}'"
         [$?.exitstatus, f.read]
       end
@@ -157,7 +150,7 @@ module BT
     private
     def stages
       (@head.commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new(Commit.new(self, @head.commit.sha), "stages/#{stage_blob.basename}")
+        Stage.new(@head.commit, "stages/#{stage_blob.basename}")
       end
     end
 
