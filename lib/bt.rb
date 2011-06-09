@@ -8,12 +8,12 @@ module BT
   require 'grit'
 
   MSG = 'bt loves you'
-
+  
   class Commit < Struct.new(:repository, :name, :id)
     extend Forwardable
 
     def initialize(repository, name)
-      id = repository.git("rev-parse --verify #{name}").chomp
+      id = repository.git.rev_parse({:verify => true}, name).chomp
       super(repository, name, id)
     end
   end
@@ -25,7 +25,7 @@ module BT
 
     def initialize(commit, filename)
       super(commit, filename, [], nil, [])
-      merge! YAML::load repository.git "cat-file blob #{commit.id}:#{filename}"
+      merge! YAML::load repository.cat_file(commit.id, filename)
     end
 
     def name
@@ -48,15 +48,15 @@ module BT
 
       # TODO: Log the whole build transaction.
       Dir.mktmpdir do |tmp_dir|
-        repository.git "clone --recursive -- . #{tmp_dir}", :system
+        repository.git.clone({:recursive => true}, repository.path, tmp_dir)
 
         Repository.new(tmp_dir) do |r|
           # Merge
           needs.each do |n|
-            r.git "pull --squash origin #{n.branch_name}", :system
+            r.git.pull({:raise => true, :squash => true}, 'origin', n.branch_name)
           end
 
-          r.git "reset --mixed #{commit.id}", :system
+          r.git.reset({:raise => true, :mixed => true}, commit.id)
 
           # Build
           status, log = run
@@ -67,7 +67,7 @@ module BT
         end
 
         # Merge back
-        repository.git "fetch #{tmp_dir} HEAD:#{branch_name}", :system
+        repository.git.fetch({:raise => true}, tmp_dir, "HEAD:#{branch_name}")
       end
 
       status
@@ -98,6 +98,7 @@ module BT
   end
 
   class Repository < Struct.new(:path)
+    
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
         repo = Grit::Repo.new(path)
@@ -109,10 +110,10 @@ module BT
 
     def initialize(path, &block)
       super(path)
-      refresh
-      
       @repo = Grit::Repo.new(path)
       
+      refresh
+
       Dir.chdir(path) { yield self } if block_given?
     end
 
@@ -126,8 +127,12 @@ module BT
       incomplete.select { |stage| stage.ready? dones }
     end
 
+    def cat_file commit, filename
+      (@repo.tree(commit) / filename).andand.data or raise 'FAIL'
+    end
+
     def commit message, files = []
-      files.each { |fn| git "add #{fn}" }
+      files.each { |fn| git.add({}, fn) }
       @repo.git.commit({
         :raise => true,
         :author=>'Build Thing <build@thing.invalid>',
@@ -137,7 +142,11 @@ module BT
       })
     end
 
-    def git(cmd, *options, &block)
+    def git
+      @repo.git
+    end
+
+    def git_old(cmd, *options, &block)
       # TODO: More comprehensive error checking.
       Dir.chdir(path) do
         if block_given?
@@ -152,11 +161,11 @@ module BT
     end
 
     def pull
-      @repo.git.fetch({}, 'origin')
+      @repo.git.fetch({:raise => true}, 'origin')
     end
 
     def push
-      @repo.git.push({}, 'origin')
+      @repo.git.push({:raise => true}, 'origin')
     end
 
     private

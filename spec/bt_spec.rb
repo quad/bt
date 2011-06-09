@@ -95,6 +95,10 @@ RSpec::Matchers.define :have_file_content do |name, content|
   match do |tree|
     (tree / name).data == content
   end
+
+  failure_message_for_should do |tree|
+    "Expected #{name.inspect} to have content #{content.inspect} but had #{(tree / name).data.inspect}"
+  end
 end
 
 module BT
