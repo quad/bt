@@ -148,9 +148,7 @@ module BT
 
     private
     def stages
-      (@head.commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new(@head.commit, "stages/#{stage_blob.basename}")
-      end
+      Pipeline.new(@repo, @head).stages
     end
 
     def done
@@ -166,6 +164,19 @@ module BT
 
     def incomplete
       stages - done
+    end
+  end
+
+  class Pipeline
+    def initialize repo, head
+      @repo = repo
+      @head = head
+    end
+
+    def stages
+      (@head.commit.tree / 'stages').blobs.map do |stage_blob|
+        Stage.new(@head.commit, "stages/#{stage_blob.basename}")
+      end
     end
   end
 end
