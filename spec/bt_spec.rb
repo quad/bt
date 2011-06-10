@@ -17,12 +17,14 @@ describe BT do
       eos
     end
     
-    before { project.build and @initial_commit = project.repo.commits.first; }
+    let!(:initial_commit) { project.repo.commits.first }
 
-    it { should have_head "bt/first/#{@initial_commit.sha}" }
+    before { project.build }
+
+    it { should have_head "bt/first/#{initial_commit.sha}" }
 
     context "its results tree" do
-      subject { project.repo.tree("bt/first/#{@initial_commit.sha}") }
+      subject { project.repo.tree("bt/first/#{initial_commit.sha}") }
 
       it { should have_file_content('new_file', "blah\n") }
     end
@@ -146,8 +148,8 @@ module BT
     end
 
     def build
-      puts %x{./bin/bt go #{repo.working_dir} 2>&1}
-      $?.exitstatus.zero?
+      output = %x{./bin/bt go #{repo.working_dir} 2>&1}
+      raise output unless $?.exitstatus.zero?
     end
   end
 end
