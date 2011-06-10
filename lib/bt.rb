@@ -8,15 +8,26 @@ module BT
 
   MSG = 'bt loves you'
   
-  class Stage < Struct.new(:pipeline, :commit, :filename, :needs, :run, :results)
+  class Stage < Struct.new(:commit, :filename, :needs, :run, :results)
     extend Forwardable
 
-    def repository
+    # Temporary: fix Grit or go home.
+    class Ref < Grit::Ref
+      def self.prefix
+        "refs/bt"
+      end
+    end
+
+    def ref
+      Ref.find_all(repo).detect { |r| r.name == "#{name}/#{commit.sha}" }
+    end
+
+    def repo
       commit.repo
     end
 
-    def initialize(pipeline, commit, filename)
-      super(pipeline, commit, filename, [], nil, [])
+    def initialize(commit, filename)
+      super(commit, filename, [], nil, [])
       merge! YAML::load (commit.tree / filename).data
     end
 
@@ -26,7 +37,7 @@ module BT
 
     def needs
       self[:needs].map do |stage_name|
-        Stage.new self[:pipeline], commit, File.join(File.dirname(filename), stage_name)
+        Stage.new commit, File.join(File.dirname(filename), stage_name)
       end
     end
 
@@ -39,7 +50,7 @@ module BT
 
       # TODO: Log the whole build transaction.
       Dir.mktmpdir do |tmp_dir|
-        repository.git.clone({:recursive => true}, repository.path, tmp_dir)
+        repo.git.clone({:recursive => true}, repo.path, tmp_dir)
 
         Repository.new(tmp_dir) do |r|
           # Merge
@@ -58,15 +69,17 @@ module BT
         end
 
         # Merge back
-        repository.git.fetch({:raise => true}, tmp_dir, "+HEAD:#{branch_name}")
+        repo.git.fetch({:raise => true}, tmp_dir, "+HEAD:#{branch_name}")
       end
 
       status
     end
 
-    def ready?
-      (needs - self[:pipeline].done).empty?
+    def ready? pipeline
+      (needs - pipeline.done).empty?
     end
+
+
 
     private
     def merge!(hash)
@@ -91,21 +104,12 @@ module BT
   end
 
   class Repository < Struct.new(:path)
-    # Temporary: fix Grit or go home.
-    class Ref < Grit::Ref
-      def self.prefix
-        "refs/bt"
-      end
-    end
+
 
     def head
       @repo.head
     end
 
-    def ref stage
-      Ref.find_all(@repo).detect { |r| r.name == "#{stage.name}/#{stage.commit.sha}" }
-    end
-    
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
         git = Grit::Git.new(path)
@@ -149,26 +153,20 @@ module BT
     end
   end
 
-  class Pipeline
-    def initialize repo, head
-      @repo = repo
-      @head = head
-    end
-
+  class Pipeline < Struct.new :commit
     def ready
-      incomplete.select { |stage| stage.ready? }
+      incomplete.select { |stage| stage.ready? self }
     end
 
     def stages
-      (@head.commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new(self, @head.commit, "stages/#{stage_blob.basename}")
+      (commit.tree / 'stages').blobs.map do |stage_blob|
+        Stage.new(commit, "stages/#{stage_blob.basename}")
       end
     end
 
     def done
        stages.select do |stage|
-        ref = @repo.ref(stage)
-        if ref
+        if ref = stage.ref
           ['OK', 'PASS'].any? {|status| ref.commit.message.start_with? status}
         else
           false
