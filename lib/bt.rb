@@ -22,6 +22,10 @@ module BT
       Ref.find_all(repo).detect { |r| r.name == "#{name}/#{commit.sha}" }
     end
 
+    def ok?
+      ['OK', 'PASS'].any? { |status| ref.commit.message.start_with? status } if ref
+    end
+
     def repo
       commit.repo
     end
@@ -75,11 +79,9 @@ module BT
       status
     end
 
-    def ready? pipeline
+    def ready_in? pipeline
       (needs - pipeline.done).empty?
     end
-
-
 
     private
     def merge!(hash)
@@ -104,8 +106,6 @@ module BT
   end
 
   class Repository < Struct.new(:path)
-
-
     def head
       @repo.head
     end
@@ -155,7 +155,7 @@ module BT
 
   class Pipeline < Struct.new :commit
     def ready
-      incomplete.select { |stage| stage.ready? self }
+      incomplete.select { |stage| stage.ready_in? self }
     end
 
     def stages
@@ -165,13 +165,7 @@ module BT
     end
 
     def done
-       stages.select do |stage|
-        if ref = stage.ref
-          ['OK', 'PASS'].any? {|status| ref.commit.message.start_with? status}
-        else
-          false
-        end
-      end
+       stages.select { |s| s.ok? }
     end
 
     def incomplete
