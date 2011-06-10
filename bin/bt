@@ -44,7 +44,9 @@ EOS
 
                  when 'go'
                    single_repo_cmd(command, 'Build a ready stage') do |r|
-                     unless stage = Pipeline.new(r, r.head).go
+                     if stage = Pipeline.new(r, r.head).ready.first
+                       stage.build
+                     else
                        Trollop::die "no stage to build"
                      end
                    end

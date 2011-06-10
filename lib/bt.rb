@@ -1,6 +1,5 @@
 module BT
   require 'andand'
-  require 'dnssd'
   require 'forwardable'
   require 'tempfile'
   require 'tmpdir'
@@ -63,14 +62,6 @@ module BT
       end
 
       status
-    end
-
-    def lead(&block)
-      DNSSD.register! commit.sha, '_x-build-thing._tcp', nil, $$, do |r|
-        yield self if block_given? && r.name == commit.sha
-        break
-      end
-      self
     end
 
     def ready?
@@ -146,10 +137,6 @@ module BT
     def initialize repo, head
       @repo = repo
       @head = head
-    end
-
-    def go
-      ready.first.andand.lead { |stage| stage.build }
     end
 
     def ready
