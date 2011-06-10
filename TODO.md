@@ -6,3 +6,4 @@
 * Automatic tags (sreeni)
 * Watch multiple repositories
   * Detect repos via bonjour
+* Make commited refs not branches.
