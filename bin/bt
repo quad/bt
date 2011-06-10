@@ -2,12 +2,14 @@
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
-require 'trollop'
 require 'bt'
+require 'grit'
+require 'trollop'
 
 module BT
   COMMANDS = %w(ready go watch)
   global_opts = Trollop::options do
+    opt :debug, "Debugging text scrolls"
     banner <<-EOS
 build thing
 
@@ -18,6 +20,8 @@ Commands:
     EOS
     stop_on COMMANDS
   end
+
+  Grit.debug = true if global_opts[:debug]
 
   def self.single_repo_cmd(command, help, &block)
     Trollop::options do
