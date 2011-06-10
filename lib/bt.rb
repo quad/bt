@@ -91,7 +91,13 @@ module BT
   end
 
   class Repository < Struct.new(:path)
-    attr_reader :pipeline
+    def head
+      @repo.head
+    end
+
+    def get_head name
+      @repo.get_head name
+    end
     
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
@@ -105,17 +111,7 @@ module BT
       super(path)
       @repo = Grit::Repo.new(path)
       
-      refresh
-
       Dir.chdir(path) { yield self } if block_given?
-    end
-
-    def ready
-      @pipeline.ready
-    end
-
-    def refresh
-      @pipeline = Pipeline.new(@repo, @repo.head)
     end
 
     def cat_file commit, filename

@@ -35,12 +35,12 @@ EOS
   command_opts = case command
                  when 'ready'
                    single_repo_cmd(command, 'List of stages ready to go') do |r|
-                     r.ready.each { |s| puts s.name }
+                     Pipeline.new(r, r.head).ready.each { |s| puts s.name }
                    end
 
                  when 'go'
                    single_repo_cmd(command, 'Build a ready stage') do |r|
-                     unless stage = r.pipeline.go
+                     unless stage = Pipeline.new(r, r.head).go
                        Trollop::die "no stage to build"
                      end
                    end
@@ -56,16 +56,13 @@ EOS
                      opt :wait, 'time to wait between builds', :type => :int, :default => 5
                    end
 
-                   Repository::bare(ARGV.shift || Dir.pwd) do |b|
+                   Repository::bare(ARGV.shift || Dir.pwd) do |r|
                      while true
-                       b.pull
-                       b.refresh
-                       b.pipeline.go
-
+                       r.pull
+                       Pipeline.new(r, r.head).go
                        sleep opts[:wait]
                      end
                    end
-
                  when nil
                    Trollop::die "need a command"
 
