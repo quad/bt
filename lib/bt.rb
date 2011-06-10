@@ -70,6 +70,7 @@ module BT
         yield self if block_given? && r.name == commit.sha
         break
       end
+      self
     end
 
     def ready?
@@ -90,6 +91,7 @@ module BT
   end
 
   class Repository < Struct.new(:path)
+    attr_reader :pipeline
     
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
@@ -148,6 +150,10 @@ module BT
     def initialize repo, head
       @repo = repo
       @head = head
+    end
+
+    def go
+      ready.first.andand.lead { |stage| stage.build }
     end
 
     def ready

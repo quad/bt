@@ -40,10 +40,9 @@ EOS
 
                  when 'go'
                    single_repo_cmd(command, 'Build a ready stage') do |r|
-                     stage = r.ready.first
-                     Trollop::die "no stage to build" unless stage
-
-                     stage.build
+                     unless stage = r.pipeline.go
+                       Trollop::die "no stage to build"
+                     end
                    end
 
                  when 'watch'
@@ -61,10 +60,7 @@ EOS
                      while true
                        b.pull
                        b.refresh
-
-                       b.ready.first.andand.lead do |stage|
-                         b.push if stage.build
-                       end
+                       b.pipeline.go
 
                        sleep opts[:wait]
                      end
