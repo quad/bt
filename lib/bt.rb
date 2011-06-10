@@ -74,10 +74,19 @@ module BT
     end
 
     def run
-      Tempfile.open("bt-#{commit.sha}-#{name}.log") do |f|
-        system "( #{self[:run]} ) | tee '#{f.path}'"
-        [$?.exitstatus, f.read]
+      result = ""
+      IO.popen('sh -', 'r+') do |io|
+        io << self[:run]
+        io.close_write
+
+        begin
+          while c = io.readpartial(4096)
+            [result, $stdout].each {|o| o << c}
+          end
+        rescue EOFError
+        end
       end
+      [$?.exitstatus, result]
     end
   end
 

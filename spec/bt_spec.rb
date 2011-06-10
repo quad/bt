@@ -28,6 +28,26 @@ describe BT do
     end
   end
 
+  describe "a repo with a failing bt build" do
+    project do |p|
+      p.stage :failing, <<-eos
+run: exit 1
+      eos
+    end
+   
+    let!(:initial_commit) { project.repo.commits.first }
+
+    before { project.build }
+
+    context "the initial commit" do
+      subject { project.repo.get_head("bt/failing/#{initial_commit.sha}").commit }
+
+      its(:message) { should == 'FAIL bt loves you' }
+    end
+  end
+
+
+
   describe "a repo with two dependent stages" do
     project do |p|
       p.stage :first, <<-eos
