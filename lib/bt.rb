@@ -31,7 +31,7 @@ module BT
     end
 
     def branch_name
-      "bt/#{name}/#{commit.sha}"
+      "refs/bt/#{name}/#{commit.sha}"
     end
 
     def build
@@ -58,7 +58,7 @@ module BT
         end
 
         # Merge back
-        repository.git.fetch({:raise => true}, tmp_dir, "HEAD:#{branch_name}")
+        repository.git.fetch({:raise => true}, tmp_dir, "+HEAD:#{branch_name}")
       end
 
       status
@@ -91,12 +91,19 @@ module BT
   end
 
   class Repository < Struct.new(:path)
+    # Temporary: fix Grit or go home.
+    class Ref < Grit::Ref
+      def self.prefix
+        "refs/bt"
+      end
+    end
+
     def head
       @repo.head
     end
 
-    def get_head name
-      @repo.get_head name
+    def ref stage
+      Ref.find_all(@repo).detect { |r| r.name == "#{stage.name}/#{stage.commit.sha}" }
     end
     
     def self.bare(path, &block)
@@ -160,9 +167,9 @@ module BT
 
     def done
        stages.select do |stage|
-        stage_branch = @repo.get_head(stage.branch_name)
-        if stage_branch
-          ['OK', 'PASS'].any? {|status| stage_branch.commit.message.start_with? status}
+        ref = @repo.ref(stage)
+        if ref
+          ['OK', 'PASS'].any? {|status| ref.commit.message.start_with? status}
         else
           false
         end

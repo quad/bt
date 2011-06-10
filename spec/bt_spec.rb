@@ -21,7 +21,7 @@ describe BT do
 
     before { project.build }
 
-    it { should have_head "bt/first/#{initial_commit.sha}" }
+    it { should have_bt_ref 'first', initial_commit }
 
     context "its results tree" do
       subject { project.repo.tree("bt/first/#{initial_commit.sha}") }
@@ -42,13 +42,11 @@ run: exit 1
     before { project.build }
 
     context "the initial commit" do
-      subject { project.repo.get_head("bt/failing/#{initial_commit.sha}").commit }
+      subject { project.bt_ref('failing', initial_commit).commit } 
 
       its(:message) { should == 'FAIL bt loves you' }
     end
   end
-
-
 
   describe "a repo with two dependent stages" do
     project do |p|
@@ -67,21 +65,21 @@ run: exit 1
       eos
     end
 
-    let(:first_commit) { project.repo.commits.first }
+    let(:source_commit) { project.repo.commits.first }
     
     context "with first stage built" do
       before { project.build }
       
-      it { should have_head "bt/first/#{first_commit.sha}" }
+      it { should have_bt_ref 'first', source_commit }
 
       context "its results tree" do
-        subject { project.repo.tree("bt/first/#{first_commit.sha}") }
+        subject { project.bt_ref('first', source_commit).tree }
 
         it { should have_file_content('new_file', "blah\n") }
       end
 
       context "its commit" do
-        subject { project.repo.get_head("bt/first/#{first_commit.sha}").commit }
+        subject { project.bt_ref('first', source_commit).commit }
 
         its(:message) { should == "PASS bt loves you" }
       end
@@ -90,16 +88,16 @@ run: exit 1
     context "with second stage built" do
       before { 2.times { project.build } }
 
-      it { should have_head "bt/second/#{first_commit.sha}" }
+      it { should have_bt_ref 'second', source_commit }
 
       context "its results tree" do
-        subject { project.repo.tree("bt/second/#{first_commit.sha}") }
+        subject { project.bt_ref('second', source_commit).tree }
 
         it { should have_file_content('new_file', "blah\nblah blah\n") }
       end
     
       context "its commit" do
-        subject { project.repo.get_head("bt/second/#{first_commit.sha}").commit }
+        subject { project.bt_ref('second', source_commit).commit }
 
         its(:message) { should == "PASS bt loves you" }
       end
@@ -107,9 +105,9 @@ run: exit 1
   end
 end
 
-RSpec::Matchers.define :have_head do |head|
+RSpec::Matchers.define :have_bt_ref do |stage, commit|
   match do |project|
-    project.repo.is_head?(head)
+    project.bt_ref(stage, commit)
   end
 end
 
@@ -124,6 +122,16 @@ RSpec::Matchers.define :have_file_content do |name, content|
 end
 
 module BT
+  class Ref < Grit::Ref
+    extend Forwardable
+
+    def_delegator :commit, :tree
+
+    def self.prefix
+      "refs/bt"
+    end
+  end
+
   class Project
     def self.at dir, &block
       FileUtils.cd(dir) do |dir|
@@ -147,10 +155,13 @@ module BT
       @repo.add "stages/#{name.to_s}"
     end
 
+    def bt_ref stage, commit
+      BT::Ref.find_all(self.repo).detect { |r| r.name == "#{stage}/#{commit.sha}" }
+    end
+
     def build
       output = %x{./bin/bt go #{repo.working_dir} 2>&1}
       raise output unless $?.exitstatus.zero?
     end
   end
 end
-
