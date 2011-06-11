@@ -90,7 +90,7 @@ module BT
         message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
         t.commit message, stage.results
 
-        repository.fetch t, commit, stage.name
+        commit.add_result t, stage.name
       end
 
       status

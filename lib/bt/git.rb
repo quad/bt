@@ -23,6 +23,10 @@ module BT
         WorkingTree.new(tmp_dir) { |r| yield r }
       end
     end
+
+    def add_result working_tree, name
+      repository.fetch working_tree, self, name
+    end
   end
 
   class Repository < Struct.new(:path)
