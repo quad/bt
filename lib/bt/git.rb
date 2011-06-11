@@ -107,8 +107,9 @@ module BT
       })
     end
 
-    def merge commits
-      commits.each { |c| git.merge({:raise => true, :squash => true}, c.sha) }
+    def checkout_result commit
+      git.merge({:raise => true, :squash => true}, commit.sha)
+      git.reset({:raise => true, :mixed => true}, commit.sha)
     end
   end
 end
