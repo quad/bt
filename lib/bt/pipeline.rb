@@ -34,9 +34,7 @@ module BT
     end
 
     def needs
-      self[:needs].map do |stage_name|
-        Stage.new pipeline, File.join(File.dirname(filename), stage_name)
-      end
+      pipeline.stages.select { |s| self[:needs].include? s.name }
     end
 
     def branch_name
