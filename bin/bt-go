@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bt'
+
+include BT::Cli
+
+single_repo_cmd('go', 'Build a ready stage') do |r|
+  if stage = r.head.pipeline.ready.first
+    stage.build
+  else
+    Trollop::die "no stage to build"
+  end
+end

@@ -35,14 +35,6 @@ module BT
   end
 
   class Repository < Struct.new(:path)
-    def self.bare(path, &block)
-      Dir.mktmpdir do |tmp_dir|
-        git = Grit::Git.new(path)
-        tmp_repo = git.clone({:raise => true, :mirror => true}, path, "#{tmp_dir}/.git")
-        yield new tmp_dir
-      end
-    end
-
     def working_tree &block
       Dir.mktmpdir do |tmp_dir|
         git.clone({:recursive => true}, path, tmp_dir)

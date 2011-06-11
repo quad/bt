@@ -21,19 +21,6 @@ Commands:
     stop_on COMMANDS
   end
 
-  Grit.debug = true if global_opts[:debug]
-
-  def self.single_repo_cmd(command, help, &block)
-    Trollop::options do
-      banner <<-EOS
-#{help}
-
-Usage:
-\tbt #{command} [repository]
-EOS
-    end
-    yield Repository.new ARGV.shift || Dir.pwd
-  end
 
   command = ARGV.shift
   command_opts = case command

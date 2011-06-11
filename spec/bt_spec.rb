@@ -160,7 +160,7 @@ module BT
     end
 
     def build
-      output = %x{./bin/bt -d go #{repo.working_dir} 2>&1}
+      output = %x{./bin/bt-go -d #{repo.working_dir} 2>&1}
       raise output unless $?.exitstatus.zero?
     end
   end
