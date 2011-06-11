@@ -80,24 +80,19 @@ module BT
       status = nil
 
       # TODO: Log the whole build transaction.
-      Dir.mktmpdir do |tmp_dir|
-        repo.git.clone({:recursive => true}, repo.path, tmp_dir)
+      repository.clone do |r|
+        stage.needs.each { |n| r.merge n.result }
 
-        Repository.new(tmp_dir) do |r|
-          stage.needs.each { |n| r.merge n.result }
+        r.git.reset({:raise => true, :mixed => true}, commit.sha)
 
-          r.git.reset({:raise => true, :mixed => true}, commit.sha)
+        # Build
+        status, log = stage.run
 
-          # Build
-          status, log = stage.run
+        # Commit results
+        message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
+        r.commit message, stage.results
 
-          # Commit results
-          message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
-          r.commit message, stage.results
-
-          repository.fetch r, commit, stage.name
-        end
-
+        repository.fetch r, commit, stage.name
       end
 
       status

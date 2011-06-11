@@ -58,7 +58,7 @@ module BT
         :"allow-empty" => true, 
         :cleanup=>'verbatim',
         :message => "#{message.strip}"
-      }).tap { |r| p "Commit", r }
+      })
     end
 
     def head
@@ -79,10 +79,9 @@ module BT
     end
 
     def clone &block
-      # TODO: Log the whole build transaction.
       Dir.mktmpdir do |tmp_dir|
         git.clone({:recursive => true}, path, tmp_dir)
-        yield Repository.new tmp_dir
+        Repository.new(tmp_dir) { |r| yield r }
       end
     end
 
