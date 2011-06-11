@@ -1,14 +1,10 @@
 module BT
-  require 'forwardable'
-  require 'grit'
   require 'tmpdir'
   require 'yaml'
 
   MSG = 'bt loves you'
 
   class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
-    extend Forwardable
-
     def ok?
       result = pipeline.result(self)
       ['OK', 'PASS'].any? { |status| result.message.start_with? status } if result
