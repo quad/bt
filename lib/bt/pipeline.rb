@@ -9,19 +9,9 @@ module BT
   class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
     extend Forwardable
 
-    # Temporary: fix Grit or go home.
-    class Ref < Grit::Ref
-      def self.prefix
-        "refs/bt"
-      end
-    end
-
-    def ref
-      Ref.find_all(repo).detect { |r| r.name == "#{name}/#{commit.sha}" }
-    end
-
     def ok?
-      ['OK', 'PASS'].any? { |status| ref.commit.message.start_with? status } if ref
+      result = pipeline.result(self)
+      ['OK', 'PASS'].any? { |status| result.message.start_with? status } if result
     end
 
     def initialize(pipeline, name, specification)
@@ -71,8 +61,6 @@ module BT
       (needs - pipeline.done).empty?
     end
 
-    private
-
     # TODO: Kill
     def commit
       pipeline.commit
@@ -82,6 +70,8 @@ module BT
     def repo
       commit.repository.repo
     end
+
+    private
 
     def merge!(hash)
       hash.each_pair { |k, v| self[k] = v }
@@ -105,6 +95,21 @@ module BT
   end
 
   class Pipeline < Struct.new :commit
+    # Temporary: fix Grit or go home.
+    class Ref < Grit::Ref
+      def self.prefix
+        "refs/bt"
+      end
+    end
+
+    def ref stage
+      Ref.find_all(commit.repository.repo).detect { |r| r.name == "#{stage.name}/#{stage.commit.sha}" }
+    end
+
+    def result stage
+      ref(stage).andand.commit
+    end
+
     def ready
       incomplete.select { |stage| stage.ready? }
     end
