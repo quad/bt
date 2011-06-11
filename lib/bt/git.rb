@@ -59,17 +59,6 @@ module BT
       (@repo.tree(commit) / filename).andand.data or raise 'FAIL'
     end
 
-    def commit message, files = []
-      files.each { |fn| git.add({}, fn) }
-      git.commit({
-        :raise => true,
-        :author => 'Build Thing <build@thing.invalid>',
-        :'allow-empty' => true, 
-        :cleanup => 'verbatim',
-        :message => "#{message.strip}"
-      })
-    end
-
     def head
       Commit.new self, @repo.head.commit
     end
@@ -81,10 +70,6 @@ module BT
     def result commit, name
       ref = refs.detect { |r| r.name == "#{name}/#{commit.sha}" }
       Commit.new self, ref.commit if ref
-    end
-
-    def merge commits
-      commits.each { |c| git.merge({:raise => true, :squash => true}, c.sha) }
     end
 
     def fetch repository, commit, name
@@ -111,5 +96,19 @@ module BT
   end
 
   class WorkingTree < Repository
+    def commit message, files = []
+      files.each { |fn| git.add({}, fn) }
+      git.commit({
+        :raise => true,
+        :author => 'Build Thing <build@thing.invalid>',
+        :'allow-empty' => true, 
+        :cleanup => 'verbatim',
+        :message => "#{message.strip}"
+      })
+    end
+
+    def merge commits
+      commits.each { |c| git.merge({:raise => true, :squash => true}, c.sha) }
+    end
   end
 end
