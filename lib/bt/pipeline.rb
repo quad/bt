@@ -6,7 +6,7 @@ module BT
 
   MSG = 'bt loves you'
 
-  class Stage < Struct.new(:pipeline, :filename, :needs, :run, :results)
+  class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
     extend Forwardable
 
     # Temporary: fix Grit or go home.
@@ -24,13 +24,9 @@ module BT
       ['OK', 'PASS'].any? { |status| ref.commit.message.start_with? status } if ref
     end
 
-    def initialize(pipeline, filename)
-      super(pipeline, filename, [], nil, [])
-      merge! YAML::load (commit.tree / filename).data
-    end
-
-    def name
-      File.basename(filename)
+    def initialize(pipeline, name, specification)
+      super(pipeline, name, specification, [], nil, [])
+      merge! specification
     end
 
     def needs
@@ -115,7 +111,7 @@ module BT
 
     def stages
       (commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new self, "stages/#{stage_blob.basename}"
+        Stage.new self, stage_blob.basename, YAML::load(stage_blob.data)
       end
     end
 
