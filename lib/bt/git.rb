@@ -17,6 +17,17 @@ module BT
       repository.result(self, name)
     end
 
+    def work depends, name, &block
+      working_tree do |t|
+        depends.each { |n| t.checkout_result n}
+        message, files = yield
+        
+        t.commit message, files
+
+        add_result t, name
+      end
+    end
+
     def working_tree &block
       Dir.mktmpdir do |tmp_dir|
         repository.clone tmp_dir

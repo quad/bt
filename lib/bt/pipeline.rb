@@ -76,22 +76,12 @@ module BT
     end
 
     def build stage
-      status = nil
-
-      commit.working_tree do |t|
-        stage.needs.each { |s| t.checkout_result s.result }
-
-        # Build
+      commit.work(stage.needs.map(&:result), stage.name) do
         status, log = stage.run
-
-        # Commit results
         message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
-        t.commit message, stage.results
 
-        commit.add_result t, stage.name
+        [message, stage.results]
       end
-
-      status
     end
   end
 end
