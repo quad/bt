@@ -17,21 +17,14 @@ module BT
       repository.result(self, name)
     end
 
-    def work depends, name, &block
-      working_tree do |t|
+    def workspace depends, &block
+      repository.working_tree do |t|
         depends.each { |n| t.checkout_result n}
-        message, files = yield
-        
+        name, message, files = yield
+
         t.commit message, files
 
         add_result t, name
-      end
-    end
-
-    def working_tree &block
-      Dir.mktmpdir do |tmp_dir|
-        repository.clone tmp_dir
-        WorkingTree.new(tmp_dir) { |r| yield r }
       end
     end
 
@@ -48,14 +41,18 @@ module BT
       end
     end
 
-    # TODO: Kill
-    attr_reader :repo
-
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
         git = Grit::Git.new(path)
         tmp_repo = git.clone({:raise => true, :mirror => true}, path, "#{tmp_dir}/.git")
         yield new tmp_dir
+      end
+    end
+
+    def working_tree &block
+      Dir.mktmpdir do |tmp_dir|
+        clone tmp_dir
+        WorkingTree.new tmp_dir, &block
       end
     end
 
@@ -104,23 +101,25 @@ module BT
     def git
       @repo.git
     end
-  end
 
-  class WorkingTree < Repository
-    def commit message, files = []
-      files.each { |fn| git.add({}, fn) }
-      git.commit({
-        :raise => true,
-        :author => 'Build Thing <build@thing.invalid>',
-        :'allow-empty' => true, 
-        :cleanup => 'verbatim',
-        :message => "#{message.strip}"
-      })
-    end
+    private
 
-    def checkout_result commit
-      git.merge({:raise => true, :squash => true}, commit.sha)
-      git.reset({:raise => true, :mixed => true}, commit.sha)
+    class WorkingTree < Repository
+      def commit message, files = []
+        files.each { |fn| git.add({}, fn) }
+        git.commit({
+          :raise => true,
+          :author => 'Build Thing <build@thing.invalid>',
+          :'allow-empty' => true, 
+          :cleanup => 'verbatim',
+          :message => "#{message.strip}"
+        })
+      end
+
+      def checkout_result commit
+        git.merge({:raise => true, :squash => true}, commit.sha)
+        git.reset({:raise => true, :mixed => true}, commit.sha)
+      end
     end
   end
 end

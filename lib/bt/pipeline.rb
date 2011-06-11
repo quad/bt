@@ -76,11 +76,11 @@ module BT
     end
 
     def build stage
-      commit.work(stage.needs.map(&:result), stage.name) do
+      commit.workspace(stage.needs.map(&:result)) do
         status, log = stage.run
         message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
 
-        [message, stage.results]
+        [stage.name, message, stage.results]
       end
     end
   end
