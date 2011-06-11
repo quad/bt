@@ -3,7 +3,7 @@ module BT
 
   class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
     def ok?
-      (r = result) && ['OK', 'PASS'].any? { |status| r.message.start_with? status }
+      (r = result) && r.message.start_with?('PASS')
     end
 
     def initialize(pipeline, name, specification)
