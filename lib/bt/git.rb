@@ -52,7 +52,7 @@ module BT
 
     def commit message, files = []
       files.each { |fn| git.add({}, fn) }
-      @repo.git.commit({
+      git.commit({
         :raise => true,
         :author=>'Build Thing <build@thing.invalid>',
         :"allow-empty" => true, 
@@ -74,12 +74,8 @@ module BT
       Commit.new self, ref.commit if ref
     end
 
-    def git
-      @repo.git
-    end
-
     def merge commit
-      @repo.git.merge({:raise => true, :squash => true}, commit.sha)
+      git.merge({:raise => true, :squash => true}, commit.sha)
     end
 
     def clone &block
@@ -93,15 +89,19 @@ module BT
     def fetch repository, commit, name
       result = repository.result(commit, name)
 
-      @repo.git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
+      git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
     end
 
     def update
-      @repo.git.fetch({:raise => true}, 'origin')
+      git.fetch({:raise => true}, 'origin')
     end
 
     def push
-      @repo.git.push({:raise => true}, 'origin')
+      git.push({:raise => true}, 'origin')
+    end
+
+    def git
+      @repo.git
     end
   end
 end
