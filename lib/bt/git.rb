@@ -20,6 +20,7 @@ module BT
     def workspace depends, &block
       repository.working_tree do |t|
         depends.each { |n| t.checkout_result n}
+
         name, message, files = yield
 
         t.commit message, files
@@ -98,11 +99,11 @@ module BT
       git.push({:raise => true}, 'origin')
     end
 
+    private
+
     def git
       @repo.git
     end
-
-    private
 
     class WorkingTree < Repository
       def commit message, files = []
