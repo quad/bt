@@ -6,8 +6,7 @@ module BT
 
   class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
     def ok?
-      result = pipeline.result(self)
-      ['OK', 'PASS'].any? { |status| result.message.start_with? status } if result
+      (r = result) && ['OK', 'PASS'].any? { |status| r.message.start_with? status }
     end
 
     def initialize(pipeline, name, specification)
@@ -21,6 +20,10 @@ module BT
 
     def build
       pipeline.build self
+    end
+
+    def result
+      pipeline.result self
     end
 
     def ready?
@@ -81,10 +84,7 @@ module BT
         repo.git.clone({:recursive => true}, repo.path, tmp_dir)
 
         Repository.new(tmp_dir) do |r|
-          stage.needs.each do |n|
-            r.pull result(n)
-          end
-
+          stage.needs.each { |n| r.merge n.result }
 
           r.git.reset({:raise => true, :mixed => true}, commit.sha)
 

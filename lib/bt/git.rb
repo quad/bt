@@ -78,8 +78,7 @@ module BT
       @repo.git
     end
 
-    def pull commit
-      @repo.git.fetch({:raise => true}, commit.repository.path)
+    def merge commit
       @repo.git.merge({:raise => true, :squash => true}, commit.sha)
     end
 
