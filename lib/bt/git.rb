@@ -66,14 +66,14 @@ module BT
     end
 
     def result commit, name
-      ref = refs.detect { |r| r.name == "#{name}/#{commit.sha}" }
+      ref = refs.detect { |r| r.name == "#{commit.sha}/#{name}" }
       Commit.new self, ref.commit if ref
     end
 
     def fetch repository, commit, name
       result = repository.result(commit, name)
 
-      git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
+      git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{commit.sha}/#{name}")
     end
 
     private
@@ -106,7 +106,9 @@ module BT
         # Causes bt-watch to crash-- and if it is to catch something, then we
         # need to think about what exceptions we want to expose.
         
-        git.push({:raise => true}, 'origin', "#{Ref.prefix}/*") end end
+        git.push({:raise => true}, 'origin', "#{Ref.prefix}/*")
+      end
+    end
 
     class WorkingTree < Repository
       def commit message, files = []
