@@ -95,19 +95,10 @@ module BT
   end
 
   class Pipeline < Struct.new :commit
-    # Temporary: fix Grit or go home.
-    class Ref < Grit::Ref
-      def self.prefix
-        "refs/bt"
-      end
-    end
 
-    def ref stage
-      Ref.find_all(commit.repository.repo).detect { |r| r.name == "#{stage.name}/#{stage.commit.sha}" }
-    end
 
     def result stage
-      ref(stage).andand.commit
+      commit.result stage.name
     end
 
     def ready

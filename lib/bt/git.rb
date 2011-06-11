@@ -7,10 +7,26 @@ module BT
   class Commit < Struct.new :repository, :commit
     extend Forwardable
 
-    def_delegators :commit, :tree, :sha
+    # Temporary: fix Grit or go home.
+    class Ref < Grit::Ref
+      def self.prefix
+        "refs/bt"
+      end
+    end
+
+    def ref name
+      Ref.find_all(commit.repo).detect { |r| r.name == "#{name}/#{sha}" }
+    end
+
+    def_delegators :commit, :tree, :sha, :message
 
     def pipeline
       Pipeline.new self
+    end
+
+    def result name
+      ref = ref(name)
+      Commit.new repository, ref.commit if ref
     end
   end
 
