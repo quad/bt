@@ -39,12 +39,12 @@ EOS
   command_opts = case command
                  when 'ready'
                    single_repo_cmd(command, 'List of stages ready to go') do |r|
-                     Pipeline.new(r.head.commit).ready.each { |s| puts s.name }
+                     Pipeline.new(r.head).ready.each { |s| puts s.name }
                    end
 
                  when 'go'
                    single_repo_cmd(command, 'Build a ready stage') do |r|
-                     if stage = Pipeline.new(r.head.commit).ready.first
+                     if stage = Pipeline.new(r.head).ready.first
                        stage.build
                      else
                        Trollop::die "no stage to build"
@@ -65,7 +65,7 @@ EOS
                    Repository::bare(ARGV.shift || Dir.pwd) do |r|
                      while true
                        r.pull
-                       Pipeline.new(r.head.commit).go
+                       Pipeline.new(r.head).go
                        sleep opts[:wait]
                      end
                    end
