@@ -16,6 +16,13 @@ module BT
     def result name
       repository.result(self, name)
     end
+
+    def working_tree &block
+      Dir.mktmpdir do |tmp_dir|
+        repository.clone tmp_dir
+        WorkingTree.new(tmp_dir) { |r| yield r }
+      end
+    end
   end
 
   class Repository < Struct.new(:path)
@@ -76,17 +83,14 @@ module BT
       git.merge({:raise => true, :squash => true}, commit.sha)
     end
 
-    def clone &block
-      Dir.mktmpdir do |tmp_dir|
-        git.clone({:recursive => true}, path, tmp_dir)
-        Repository.new(tmp_dir) { |r| yield r }
-      end
-    end
-
     def fetch repository, commit, name
       result = repository.result(commit, name)
 
       git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
+    end
+
+    def clone target_directory
+      git.clone({:recursive => true}, path, target_directory)
     end
 
     def update
@@ -100,5 +104,8 @@ module BT
     def git
       @repo.git
     end
+  end
+
+  class WorkingTree < Repository
   end
 end

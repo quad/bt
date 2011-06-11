@@ -78,20 +78,19 @@ module BT
     def build stage
       status = nil
 
-      # TODO: Log the whole build transaction.
-      repository.clone do |r|
-        stage.needs.each { |n| r.merge n.result }
+      commit.working_tree do |t|
+        stage.needs.each { |n| t.merge n.result }
 
-        r.git.reset({:raise => true, :mixed => true}, commit.sha)
+        t.git.reset({:raise => true, :mixed => true}, commit.sha)
 
         # Build
         status, log = stage.run
 
         # Commit results
         message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
-        r.commit message, stage.results
+        t.commit message, stage.results
 
-        repository.fetch r, commit, stage.name
+        repository.fetch t, commit, stage.name
       end
 
       status
