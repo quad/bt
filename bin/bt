@@ -64,7 +64,7 @@ EOS
 
                    Repository::bare(ARGV.shift || Dir.pwd) do |r|
                      while true
-                       r.pull
+                       r.update
                        Pipeline.new(r.head).go
                        sleep opts[:wait]
                      end

@@ -4,6 +4,8 @@ module BT
   require 'grit'
   require 'tmpdir'
 
+  require 'yaml'
+
   class Commit < Struct.new :repository, :commit
     extend Forwardable
 
@@ -76,7 +78,12 @@ module BT
       @repo.git
     end
 
-    def pull
+    def pull commit
+      @repo.git.fetch({:raise => true}, commit.repository.path)
+      @repo.git.merge({:raise => true, :squash => true}, commit.sha)
+    end
+
+    def update
       @repo.git.fetch({:raise => true}, 'origin')
     end
 

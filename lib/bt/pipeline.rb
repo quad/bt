@@ -19,58 +19,12 @@ module BT
       pipeline.stages.select { |s| self[:needs].include? s.name }
     end
 
-    def branch_name
-      "refs/bt/#{name}/#{commit.sha}"
-    end
-
     def build
-      status = nil
-
-      # TODO: Log the whole build transaction.
-      Dir.mktmpdir do |tmp_dir|
-        repo.git.clone({:recursive => true}, repo.path, tmp_dir)
-
-        Repository.new(tmp_dir) do |r|
-          # Merge
-          needs.each do |n|
-            r.git.pull({:raise => true, :squash => true}, 'origin', n.branch_name)
-          end
-
-          r.git.reset({:raise => true, :mixed => true}, commit.sha)
-
-          # Build
-          status, log = run
-
-          # Commit results
-          message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
-          r.commit message, results
-        end
-
-        # Merge back
-        repo.git.fetch({:raise => true}, tmp_dir, "+HEAD:#{branch_name}")
-      end
-
-      status
+      pipeline.build self
     end
 
     def ready?
       (needs - pipeline.done).empty?
-    end
-
-    # TODO: Kill
-    def commit
-      pipeline.commit
-    end
-
-    # TODO: Kill
-    def repo
-      commit.repository.repo
-    end
-
-    private
-
-    def merge!(hash)
-      hash.each_pair { |k, v| self[k] = v }
     end
 
     def run
@@ -87,6 +41,12 @@ module BT
         end
       end
       [$?.exitstatus, result]
+    end
+
+    private
+
+    def merge!(hash)
+      hash.each_pair { |k, v| self[k] = v }
     end
   end
 
@@ -111,6 +71,45 @@ module BT
 
     def incomplete
       stages - done
+    end
+
+    def build stage
+      status = nil
+
+      # TODO: Log the whole build transaction.
+      Dir.mktmpdir do |tmp_dir|
+        repo.git.clone({:recursive => true}, repo.path, tmp_dir)
+
+        Repository.new(tmp_dir) do |r|
+          stage.needs.each do |n|
+            r.pull result(n)
+          end
+
+
+          r.git.reset({:raise => true, :mixed => true}, commit.sha)
+
+          # Build
+          status, log = stage.run
+
+          # Commit results
+          message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
+          r.commit message, stage.results
+        end
+
+        # Merge back
+        repo.git.fetch({:raise => true}, tmp_dir, "+HEAD:#{branch_name stage}")
+      end
+
+      status
+    end
+
+    def branch_name stage
+      "refs/bt/#{stage.name}/#{commit.sha}"
+    end
+
+    # TODO: Kill
+    def repo
+      commit.repository.repo
     end
   end
 end
