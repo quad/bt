@@ -95,10 +95,5 @@ module BT
 
       status
     end
-
-    # TODO: Kill
-    def repository
-      commit.repository
-    end
   end
 end
