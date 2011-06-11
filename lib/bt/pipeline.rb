@@ -1,8 +1,5 @@
 module BT
-  require 'tmpdir'
   require 'yaml'
-
-  MSG = 'bt loves you'
 
   class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
     def ok?
@@ -31,7 +28,7 @@ module BT
     end
 
     def run
-      result = ""
+      result = ''
       IO.popen('sh -', 'r+') do |io|
         io << self[:run]
         io.close_write
@@ -54,6 +51,8 @@ module BT
   end
 
   class Pipeline < Struct.new :commit
+    MSG = 'bt loves you'
+
     def result stage
       commit.result stage.name
     end
@@ -98,18 +97,9 @@ module BT
       status
     end
 
-    def branch_name stage
-      "refs/bt/#{stage.name}/#{commit.sha}"
-    end
-
     # TODO: Kill
     def repository
       commit.repository
-    end
-
-    # TODO: Kill
-    def repo
-      repository.repo
     end
   end
 end

@@ -4,8 +4,6 @@ module BT
   require 'grit'
   require 'tmpdir'
 
-  require 'yaml'
-
   class Commit < Struct.new :repository, :commit
     extend Forwardable
 
@@ -24,7 +22,7 @@ module BT
     # Temporary: fix Grit or go home.
     class Ref < Grit::Ref
       def self.prefix
-        "refs/bt"
+        'refs/bt'
       end
     end
 
@@ -54,9 +52,9 @@ module BT
       files.each { |fn| git.add({}, fn) }
       git.commit({
         :raise => true,
-        :author=>'Build Thing <build@thing.invalid>',
-        :"allow-empty" => true, 
-        :cleanup=>'verbatim',
+        :author => 'Build Thing <build@thing.invalid>',
+        :'allow-empty' => true, 
+        :cleanup => 'verbatim',
         :message => "#{message.strip}"
       })
     end
