@@ -67,7 +67,7 @@ module BT
       status
     end
 
-    def ready_in? pipeline
+    def ready?
       (needs - pipeline.done).empty?
     end
 
@@ -106,7 +106,7 @@ module BT
 
   class Pipeline < Struct.new :commit
     def ready
-      incomplete.select { |stage| stage.ready_in? self }
+      incomplete.select { |stage| stage.ready? }
     end
 
     def stages
