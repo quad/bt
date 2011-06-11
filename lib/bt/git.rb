@@ -7,17 +7,6 @@ module BT
   class Commit < Struct.new :repository, :commit
     extend Forwardable
 
-    # Temporary: fix Grit or go home.
-    class Ref < Grit::Ref
-      def self.prefix
-        "refs/bt"
-      end
-    end
-
-    def ref name
-      Ref.find_all(commit.repo).detect { |r| r.name == "#{name}/#{sha}" }
-    end
-
     def_delegators :commit, :tree, :sha, :message
 
     def pipeline
@@ -25,12 +14,18 @@ module BT
     end
 
     def result name
-      ref = ref(name)
-      Commit.new repository, ref.commit if ref
+      repository.result(self, name)
     end
   end
 
   class Repository < Struct.new(:path)
+    # Temporary: fix Grit or go home.
+    class Ref < Grit::Ref
+      def self.prefix
+        "refs/bt"
+      end
+    end
+
     # TODO: Kill
     attr_reader :repo
 
@@ -66,6 +61,14 @@ module BT
 
     def head
       Commit.new self, @repo.head.commit
+    end
+
+    def refs
+      Ref.find_all(@repo)
+    end
+
+    def result commit, name
+      refs.detect { |r| r.name == "#{name}/#{commit.sha}" }.andand.commit
     end
 
     def git

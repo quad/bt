@@ -95,8 +95,6 @@ module BT
   end
 
   class Pipeline < Struct.new :commit
-
-
     def result stage
       commit.result stage.name
     end
