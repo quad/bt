@@ -83,8 +83,8 @@ module BT
       Commit.new self, ref.commit if ref
     end
 
-    def merge commit
-      git.merge({:raise => true, :squash => true}, commit.sha)
+    def merge commits
+      commits.each { |c| git.merge({:raise => true, :squash => true}, c.sha) }
     end
 
     def fetch repository, commit, name

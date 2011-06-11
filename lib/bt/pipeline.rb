@@ -79,7 +79,7 @@ module BT
       status = nil
 
       commit.working_tree do |t|
-        stage.needs.each { |n| t.merge n.result }
+        t.merge stage.needs.map(&:result)
 
         t.git.reset({:raise => true, :mixed => true}, commit.sha)
 
