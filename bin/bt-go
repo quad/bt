@@ -6,10 +6,34 @@ require 'bt'
 
 include BT::Cli
 
-single_repo_cmd('go', 'Build a ready stage') do |r|
-  if stage = r.head.pipeline.ready.first
+opts = Trollop::options do
+  banner <<-EOS
+Build stages
+
+Builds ready stages until there aren't any.
+
+If a stage is specified, builds it and any needs it might have.
+
+Usage:
+\tbt go [stage stage ...]
+  EOS
+  opt :debug, 'Debugging text scrolls'
+  opt :once, 'Build only the next ready stage'
+  opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
+end
+
+Grit.debug = true if opts[:debug]
+
+next_stage = ARGV.shift
+
+if next_stage
+  # TODO
+else
+  r = BT::Repository.new opts[:directory]
+
+  while (stage = r.head.pipeline.ready.first)
     stage.build
-  else
-    Trollop::die "no stage to build"
+    puts "#{stage.name}: #{stage.result}"
+    break if opts[:once]
   end
 end
