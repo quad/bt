@@ -101,12 +101,18 @@ module BT
       end
 
       def push
-        # TODO: Raise on failure (double-build, network-failures, etc.).
+        # TODO: This should probably throw an exception.
         #
-        # Causes bt-watch to crash-- and if it is to catch something, then we
-        # need to think about what exceptions we want to expose.
-        
-        git.push({:raise => true}, 'origin', "#{Ref.prefix}/*")
+        # This is a general failure right now.
+        #
+        # But what if we just lost network connectivity?
+        begin
+          git.push({:raise => true }, 'origin', "#{Ref.prefix}/*")
+
+          true
+        rescue Grit::Git::CommandFailed
+          false
+        end
       end
     end
 

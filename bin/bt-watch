@@ -27,7 +27,9 @@ BT::Repository.mirror(uri) do |r|
     r.update
     if stage = r.head.pipeline.ready.first
       stage.build
-      r.push
+      # TODO: r.push does all stages. So this error message is a lie.
+      # Also, what about network failures and such?
+      puts "#{stage.name}: #{stage.result}: Already pushed to origin!" unless r.push
     end
     sleep opts[:wait]
   end
