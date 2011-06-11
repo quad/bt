@@ -68,7 +68,8 @@ module BT
     end
 
     def result commit, name
-      refs.detect { |r| r.name == "#{name}/#{commit.sha}" }.andand.commit
+      ref = refs.detect { |r| r.name == "#{name}/#{commit.sha}" }
+      Commit.new self, ref.commit if ref
     end
 
     def git
