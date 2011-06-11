@@ -32,6 +32,10 @@ module BT
     def add_result working_tree, name
       repository.fetch working_tree, self, name
     end
+
+    def to_s
+      "#{message.lines.first.chomp} (#{sha})"
+    end
   end
 
   class Repository < Struct.new(:path)
@@ -91,9 +95,18 @@ module BT
 
     class Mirror < Repository
       def update
-        git.fetch({:raise => true}, 'origin')
+        # TODO: Make a behavior test to show "+" means the remote repository is
+        # the eternal source of truth.
+        git.fetch({:raise => true}, 'origin', "+#{Ref.prefix}/*:#{Ref.prefix}/*")
       end
-    end
+
+      def push
+        # TODO: Raise on failure (double-build, network-failures, etc.).
+        #
+        # Causes bt-watch to crash-- and if it is to catch something, then we
+        # need to think about what exceptions we want to expose.
+        
+        git.push({:raise => true}, 'origin', "#{Ref.prefix}/*") end end
 
     class WorkingTree < Repository
       def commit message, files = []

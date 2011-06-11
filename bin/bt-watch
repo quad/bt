@@ -6,16 +6,14 @@ require 'bt'
 
 include BT::Cli
 
-BIN_PATH = File.expand_path '..', __FILE__
-
 opts = Trollop::options do
-  opt :debug, "Debugging text scrolls"
   banner <<-EOS
-Watch and build stages ready to go on a repository
+Watch a repository for stages to build
 
 Usage:
 \tbt watch [repository]
   EOS
+  opt :debug, "Debugging text scrolls"
   opt :wait, 'time to wait between builds', :type => :int, :default => 5
 end
 
@@ -29,6 +27,7 @@ BT::Repository.mirror(uri) do |r|
     r.update
     if stage = r.head.pipeline.ready.first
       stage.build
+      r.push
     end
     sleep opts[:wait]
   end
