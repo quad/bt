@@ -35,6 +35,14 @@ module BT
   end
 
   class Repository < Struct.new(:path)
+    # TODO: Mirror is not the right word.
+    def self.mirror uri, &block
+      Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
+        repo = Grit::Repo.new(tmp_dir).fork_bare_from uri
+        Mirror.new repo.path, &block
+      end
+    end
+
     def working_tree &block
       Dir.mktmpdir do |tmp_dir|
         git.clone({:recursive => true}, path, tmp_dir)
@@ -64,10 +72,6 @@ module BT
       git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
     end
 
-    def update
-      git.fetch({:raise => true}, 'origin')
-    end
-
     private
 
     # Temporary: fix Grit or go home.
@@ -83,6 +87,12 @@ module BT
 
     def refs
       Ref.find_all(@repo)
+    end
+
+    class Mirror < Repository
+      def update
+        git.fetch({:raise => true}, 'origin')
+      end
     end
 
     class WorkingTree < Repository

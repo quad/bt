@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bt'
+
+include BT::Cli
+
+single_repo_cmd('ready', 'List of stages ready to go') do |r|
+  r.head.pipeline.ready.each { |s| puts s.name }
+end

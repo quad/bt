@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bt'
+
+include BT::Cli
+
+BIN_PATH = File.expand_path '..', __FILE__
+
+opts = Trollop::options do
+  opt :debug, "Debugging text scrolls"
+  banner <<-EOS
+Watch and build stages ready to go on a repository
+
+Usage:
+\tbt watch [repository]
+  EOS
+  opt :wait, 'time to wait between builds', :type => :int, :default => 5
+end
+
+Grit.debug = true if opts[:debug]
+
+uri = ARGV.shift || Dir.pwd
+
+# TODO: Why does this BT:: reference need to be fully qualified?
+BT::Repository.mirror(uri) do |r|
+  while true
+    r.update
+    if stage = r.head.pipeline.ready.first
+      stage.build
+    end
+    sleep opts[:wait]
+  end
+end
