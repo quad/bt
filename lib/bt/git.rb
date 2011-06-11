@@ -35,13 +35,6 @@ module BT
   end
 
   class Repository < Struct.new(:path)
-    # Temporary: fix Grit or go home.
-    class Ref < Grit::Ref
-      def self.prefix
-        'refs/bt'
-      end
-    end
-
     def self.bare(path, &block)
       Dir.mktmpdir do |tmp_dir|
         git = Grit::Git.new(path)
@@ -52,7 +45,7 @@ module BT
 
     def working_tree &block
       Dir.mktmpdir do |tmp_dir|
-        clone tmp_dir
+        git.clone({:recursive => true}, path, tmp_dir)
         WorkingTree.new tmp_dir, &block
       end
     end
@@ -64,16 +57,8 @@ module BT
       Dir.chdir(path) { yield self } if block_given?
     end
 
-    def cat_file commit, filename
-      (@repo.tree(commit) / filename).andand.data or raise 'FAIL'
-    end
-
     def head
       Commit.new self, @repo.head.commit
-    end
-
-    def refs
-      Ref.find_all(@repo)
     end
 
     def result commit, name
@@ -87,22 +72,25 @@ module BT
       git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
     end
 
-    def clone target_directory
-      git.clone({:recursive => true}, path, target_directory)
-    end
-
     def update
       git.fetch({:raise => true}, 'origin')
     end
 
-    def push
-      git.push({:raise => true}, 'origin')
-    end
-
     private
+
+    # Temporary: fix Grit or go home.
+    class Ref < Grit::Ref
+      def self.prefix
+        'refs/bt'
+      end
+    end
 
     def git
       @repo.git
+    end
+
+    def refs
+      Ref.find_all(@repo)
     end
 
     class WorkingTree < Repository
