@@ -14,4 +14,6 @@
 * Automatic tags (sreeni)
 * Watch multiple repositories
   * Detect repos via bonjour
-
+* Commit sharing
+  * When watching multiple repositories, if two repos share the same
+    commit/sha, then re-use the build result.
