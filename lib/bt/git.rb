@@ -82,6 +82,14 @@ module BT
       @repo.git.merge({:raise => true, :squash => true}, commit.sha)
     end
 
+    def clone &block
+      # TODO: Log the whole build transaction.
+      Dir.mktmpdir do |tmp_dir|
+        git.clone({:recursive => true}, path, tmp_dir)
+        yield Repository.new tmp_dir
+      end
+    end
+
     def fetch repository, commit, name
       result = repository.result(commit, name)
 

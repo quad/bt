@@ -83,7 +83,7 @@ module BT
       Dir.mktmpdir do |tmp_dir|
         repo.git.clone({:recursive => true}, repo.path, tmp_dir)
 
-        r = Repository.new(tmp_dir) do |r|
+        Repository.new(tmp_dir) do |r|
           stage.needs.each { |n| r.merge n.result }
 
           r.git.reset({:raise => true, :mixed => true}, commit.sha)
@@ -94,9 +94,10 @@ module BT
           # Commit results
           message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
           r.commit message, stage.results
+
+          repository.fetch r, commit, stage.name
         end
 
-        repository.fetch r, commit, stage.name
       end
 
       status
