@@ -83,7 +83,7 @@ module BT
       Dir.mktmpdir do |tmp_dir|
         repo.git.clone({:recursive => true}, repo.path, tmp_dir)
 
-        Repository.new(tmp_dir) do |r|
+        r = Repository.new(tmp_dir) do |r|
           stage.needs.each { |n| r.merge n.result }
 
           r.git.reset({:raise => true, :mixed => true}, commit.sha)
@@ -96,8 +96,7 @@ module BT
           r.commit message, stage.results
         end
 
-        # Merge back
-        repo.git.fetch({:raise => true}, tmp_dir, "+HEAD:#{branch_name stage}")
+        repository.fetch r, commit, stage.name
       end
 
       status
@@ -108,8 +107,13 @@ module BT
     end
 
     # TODO: Kill
+    def repository
+      commit.repository
+    end
+
+    # TODO: Kill
     def repo
-      commit.repository.repo
+      repository.repo
     end
   end
 end

@@ -58,7 +58,7 @@ module BT
         :"allow-empty" => true, 
         :cleanup=>'verbatim',
         :message => "#{message.strip}"
-      })
+      }).tap { |r| p "Commit", r }
     end
 
     def head
@@ -80,6 +80,12 @@ module BT
 
     def merge commit
       @repo.git.merge({:raise => true, :squash => true}, commit.sha)
+    end
+
+    def fetch repository, commit, name
+      result = repository.result(commit, name)
+
+      @repo.git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{name}/#{commit.sha}")
     end
 
     def update
