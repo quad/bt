@@ -30,6 +30,26 @@ describe 'bt-go' do
     end
   end
 
+  describe "a repo which expects results that are not generated" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: exit
+  results:
+    - new_file
+      eos
+    end
+
+    let!(:initial_commit) { project.repo.commits.first }
+
+    before { project.build }
+
+    context "the initial commit" do
+      subject { project.bt_ref('first', initial_commit).commit } 
+
+      its(:message) { should == 'FAIL bt loves you' }
+    end
+  end
+ 
   describe "a repo with a failing bt build" do
     project do |p|
       p.stage :failing, <<-eos

@@ -78,9 +78,12 @@ module BT
     def build stage
       commit.workspace(stage.needs.map(&:result)) do
         status, log = stage.run
-        message = "#{status.zero? ? :PASS : :FAIL} #{MSG}\n\n#{log}"
 
-        [stage.name, message, stage.results]
+        files = stage.results.select {|fn| File.readable? fn}
+        flag = (files == stage.results) && status.zero?
+        message = "#{flag ? :PASS : :FAIL} #{MSG}\n\n#{log}"
+
+        [stage.name, message, files]
       end
     end
   end

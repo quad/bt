@@ -122,8 +122,7 @@ module BT
 
     class WorkingTree < Repository
       def commit message, files = []
-        # TODO: Should add raise?
-        files.each { |fn| git.add({}, fn) }
+        files.each { |fn| git.add({:force => true, :raise => true}, fn) }
         git.commit({
           :raise => true,
           :author => 'Build Thing <build@thing.invalid>',
