@@ -122,6 +122,7 @@ module BT
 
     class WorkingTree < Repository
       def commit message, files = []
+        # TODO: Should add raise?
         files.each { |fn| git.add({}, fn) }
         git.commit({
           :raise => true,
