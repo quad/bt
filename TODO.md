@@ -28,10 +28,6 @@
 
 * Should build from a working directory
   * From a stash?
-* Should run again arbitrary commits
-* Should be able to watch multiple repos
-  * Detect repos via bonjour
-
 
 == bt-watch
 
@@ -43,6 +39,9 @@
   * Available? Busy?
   * Active log
   * Other agents?
+* Should be able to watch multiple repos
+  * Detect repos via bonjour
+
 
 
 == bt-agent
