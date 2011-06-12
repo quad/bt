@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+
+require 'dnssd'
+require 'thread'
+require 'timeout'
+require 'uuid'
+
+BT_SERVICE = '_x-build-thing._tcp'
+
+SEARCH_PHASE_TIMEOUT = 2
+
+ANNOUNCE_PHASE_DELAY = 3
+ANNOUNCE_PHASE_SEARCHES = 5
+
+class TooLate < Exception; end
+class LostLeadership < Exception; end
+
+def search stage, commit, &block
+  DNSSD.browse! BT_SERVICE do |r|
+    DNSSD.resolve! r do |them|
+      if them.text_record['stage'] == stage && them.text_record['commit'] = commit
+        yield them
+      end
+
+      break unless them.flags.more_coming?
+    end
+    break unless r.flags.more_coming?
+  end
+end
+
+commit = '123abc'
+stage = 'stage'
+
+# Look for anyone already out there.
+begin
+  Timeout.timeout SEARCH_PHASE_TIMEOUT do
+    search(stage, commit) do |them|
+      raise TooLate
+    end
+  end
+rescue Timeout::Error
+rescue TooLate
+  exit
+end
+
+# Announce candidacy
+announce_phase_searches_completed = Queue.new
+
+uuid = UUID.new.generate
+txt = DNSSD::TextRecord.new 'commit' => commit, 'stage' => stage, 'uuid' => uuid
+
+name = "#{`whoami`.chomp}'s Build Thing"
+service = DNSSD.register name, BT_SERVICE, nil, $$, text_record=txt do |us|
+  begin
+    c = 0
+
+    while true
+      c += 1 if c < ANNOUNCE_PHASE_SEARCHES
+      announce_phase_searches_completed << true if c == ANNOUNCE_PHASE_SEARCHES
+
+      # Have we lost?
+      search stage, commit do |them|
+        if them.text_record['uuid'] > uuid
+          raise LostLeadership 
+        end
+      end
+    end
+  ensure
+    announce_phase_searches_completed << false
+  end
+end
+
+# If we're still leading after the announce phase, we're the guy!
+sleep ANNOUNCE_PHASE_DELAY
+announce_phase_searches_completed.pop
+exit unless service.started?
+
+while service.started?
+  begin
+    puts "LEAD"
+  rescue Errno::EPIPE
+    break
+  end
+end
