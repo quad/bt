@@ -66,6 +66,8 @@ run: exit 1
 
       its(:message) { should == 'FAIL bt loves you' }
     end
+
+    it { should_not be_ready }
   end
 
   describe "a repo with two dependent stages" do
@@ -86,10 +88,13 @@ run: exit 1
     end
 
     let(:source_commit) { project.repo.commits.first }
+
+    it { should be_ready }
     
     context "with first stage built" do
       before { project.build }
       
+      it { should be_ready }
       it { should have_bt_ref 'first', source_commit }
 
       context "its results tree" do
@@ -108,6 +113,7 @@ run: exit 1
     context "with second stage built" do
       before { 2.times { project.build } }
 
+      it { should_not be_ready }
       it { should have_bt_ref 'second', source_commit }
 
       context "its results tree" do
@@ -181,5 +187,11 @@ class Project
   def build
     output = %x{./bin/bt-go --once --debug --directory #{repo.working_dir} 2>&1}
     raise output unless $?.exitstatus.zero?
+  end
+
+  def ready?
+    output = %x{./bin/bt-ready #{repo.working_dir}}
+    raise output unless $?.exitstatus.zero?
+    !output.empty?
   end
 end

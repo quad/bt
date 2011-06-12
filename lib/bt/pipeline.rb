@@ -6,6 +6,10 @@ module BT
       (r = result) && r.message.start_with?('PASS')
     end
 
+    def done?
+      result
+    end
+
     def initialize(pipeline, name, specification)
       super(pipeline, name, specification, [], nil, [])
       merge! specification
@@ -68,7 +72,7 @@ module BT
     end
 
     def done
-      stages.select { |s| s.ok? }
+      stages.select { |s| s.done? }
     end
 
     def incomplete
