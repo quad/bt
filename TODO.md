@@ -17,3 +17,5 @@
 * Commit sharing
   * When watching multiple repositories, if two repos share the same
     commit/sha, then re-use the build result.
+* Build coordination via Kademlia
+  * DNSSD only works on local networks, is buggy, and not Internet friendly.
