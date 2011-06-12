@@ -56,11 +56,12 @@ def announce_phase build
   name = "#{`whoami`.chomp}'s Build Thing"
   service = DNSSD.register name, BT_SERVICE, nil, $$, text_record=txt do |us|
     begin
+      t = Time.now + ANNOUNCE_PHASE_DELAY
       c = 0
 
       while true
         c += 1 if c < ANNOUNCE_PHASE_SEARCHES
-        announce_phase_searches_completed << true if c == ANNOUNCE_PHASE_SEARCHES
+        announce_phase_searches_completed << true if c == ANNOUNCE_PHASE_SEARCHES && Time.now > t
 
         # Have we lost?
         dnssd_search build do |them|
@@ -76,7 +77,6 @@ def announce_phase build
   end
 
   # If we're still leading after the announce phase, we're the guy!
-  sleep ANNOUNCE_PHASE_DELAY
   announce_phase_searches_completed.pop
   return unless service.started?
 
