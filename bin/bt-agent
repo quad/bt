@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'digest/sha'
+require 'digest/sha1'
 require 'dnssd'
 require 'thread'
 require 'timeout'
