@@ -14,7 +14,6 @@ Usage:
 \tbt watch [repository]
   EOS
   opt :debug, "Debugging text scrolls"
-  opt :wait, 'time to wait between builds', :type => :int, :default => 5
 end
 
 Grit.debug = true if opts[:debug]
@@ -60,6 +59,5 @@ BT::Repository.mirror(uri) do |r|
         end
       end
     end
-    sleep opts[:wait]
   end
 end
