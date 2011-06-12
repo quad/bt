@@ -1,16 +1,17 @@
 #!/usr/bin/env ruby
 
+require 'digest/sha'
 require 'dnssd'
 require 'thread'
 require 'timeout'
-require 'uuid'
 require 'trollop'
+require 'uuid'
 
 BT_SERVICE = '_x-build-thing._tcp'
 
 SEARCH_PHASE_TIMEOUT = 2
 
-ANNOUNCE_PHASE_DELAY = 3
+ANNOUNCE_PHASE_DELAY = 5
 ANNOUNCE_PHASE_SEARCHES = 5
 
 class TooLate < Exception; end
@@ -63,7 +64,8 @@ def announce_phase build
 
         # Have we lost?
         dnssd_search build do |them|
-          if them.text_record['uuid'] > uuid
+          a, b = [them.text_record['uuid'], uuid].map { |u| Digest::SHA1.digest u }
+          if a > b
             raise LostLeadership 
           end
         end
