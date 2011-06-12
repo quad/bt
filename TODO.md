@@ -1,21 +1,51 @@
 = Bugs
 
-* Build results are children of the source commit. They should be children of
-  their needs.
+* Should commit results as merge commit of their needs
+
 
 = Wishlist
 
-* Integrate with Jenkins for build reporting
-* Dynamic stage generation
-* Building branches other than master (HEAD)
-* Stage aliases?
-  * Should there be a bt/HEAD/stage or a bt/stage?
-* Agent HTTP monitoring / status console
-* Automatic tags (sreeni)
-* Watch multiple repositories
+* Should support dynamically defined stages
+  * Stages per:
+    * Spec
+    * Feature
+* Should support stage tags
+  * Automatic tags
+    * linux/windows/darwin
+    * java/java5/java/6
+    * rvm
+    * ruby/ruby18/ruby187/ruby19
+    * xvfb
+* Should re-use build results when watching multiple repositories
+* Should support custom build schedules
+  * Optimistic with bisection on failing builds
+  * Some machines satisfy old commits, some machine satisfy new commits
+  * Historical tracking to schedule bad stages earlier?
+* Should coordinate builds 
+
+
+== bt-go
+
+* Should build from a working directory
+  * From a stash?
+* Should run again arbitrary commits
+* Should be able to watch multiple repos
   * Detect repos via bonjour
-* Commit sharing
-  * When watching multiple repositories, if two repos share the same
-    commit/sha, then re-use the build result.
-* Build coordination via Kademlia
+
+
+== bt-watch
+
+* Should delegate to bt-agent, bt-go, bt-next-commit
+* Should integrate with Jenkins for build reporting
+  * Post-receive on the central repo?
+* Should run a git serve of its mirror
+* Should have an HTTP status console
+  * Available? Busy?
+  * Active log
+  * Other agents?
+
+
+== bt-agent
+
+* Should coordinate builds over WANs and the Internet
   * DNSSD only works on local networks, is buggy, and not Internet friendly.
