@@ -42,7 +42,7 @@ end
 BT::Repository.mirror(uri) do |r|
   while true
     r.update
-    if stage = r.head.pipeline.ready.first
+    if stage = r.head.pipeline.ready.shuffle.first
       Agent.start stage do |a|
         if a.leading?
           stage.build
