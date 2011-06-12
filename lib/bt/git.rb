@@ -42,13 +42,14 @@ module BT
     # TODO: Mirror is not the right word.
     def self.mirror uri, &block
       Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
-        repo = Grit::Repo.new(tmp_dir).fork_bare_from uri
+        repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false
         Mirror.new repo.path, &block
       end
     end
 
     def working_tree &block
       Dir.mktmpdir do |tmp_dir|
+        # TODO: Grit::Git::GitTimeout on long checkouts?
         git.clone({:recursive => true}, path, tmp_dir)
         WorkingTree.new tmp_dir, &block
       end
