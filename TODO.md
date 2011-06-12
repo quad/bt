@@ -1,7 +1,7 @@
 = Bugs
 
 * Should commit results as merge commit of their needs
-
+* Watching an invalid repo crashes hard.
 
 = Wishlist
 
