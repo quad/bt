@@ -65,6 +65,10 @@ module BT
       Commit.new self, @repo.head.commit
     end
 
+    def commit name
+      Commit.new self, @repo.commit(name)
+    end
+
     def result commit, name
       ref = refs.detect { |r| r.name == "#{commit.sha}/#{name}" }
       Commit.new self, ref.commit if ref

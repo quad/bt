@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bt'
+
+opts = Trollop::options do
+  banner <<-EOS
+Shows build results for head.
+
+Usage:
+\tbt results
+  EOS
+  opt :debug, 'Debugging text scrolls'
+  opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
+  opt :commit, 'Commit to get results for', :default => 'HEAD'
+end
+
+Grit.debug = true if opts[:debug]
+
+r = BT::Repository.new opts[:directory]
+
+commit = r.commit(opts[:commit])
+stages = commit.pipeline.stages.sort {|a, b| b.needs.count <=> a.needs.count }
+
+puts "Results (#{commit.sha}):\n\n"
+
+stages.each do |stage|
+  puts "#{stage.name}: #{stage.result}"
+end
+
