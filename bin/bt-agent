@@ -1,0 +1,107 @@
+#!/usr/bin/env ruby
+
+require 'digest/sha1'
+require 'dnssd'
+require 'thread'
+require 'timeout'
+require 'trollop'
+require 'uuid'
+
+BT_SERVICE = '_x-build-thing._tcp'
+
+SEARCH_PHASE_TIMEOUT = 2
+
+ANNOUNCE_PHASE_DELAY = 5
+ANNOUNCE_PHASE_SEARCHES = 5
+
+class TooLate < Exception; end
+class LostLeadership < Exception; end
+
+def dnssd_search build, &block
+  DNSSD.browse! BT_SERVICE do |r|
+    DNSSD.resolve! r do |them|
+      if them.text_record['build'] == build
+        yield them
+      end
+
+      break unless them.flags.more_coming?
+    end
+    break unless r.flags.more_coming?
+  end
+end
+
+def search_phase build
+  # Look for anyone already out there.
+  begin
+    Timeout.timeout SEARCH_PHASE_TIMEOUT do
+      dnssd_search build do |them|
+        raise TooLate
+      end
+    end
+  rescue Timeout::Error
+  rescue TooLate
+    return false
+  end
+
+  true
+end
+
+def announce_phase build
+  # Announce candidacy
+  announce_phase_searches_completed = Queue.new
+
+  uuid = UUID.new.generate
+  txt = DNSSD::TextRecord.new 'build' => build, 'uuid' => uuid
+
+  name = "#{`whoami`.chomp}'s Build Thing"
+  service = DNSSD.register name, BT_SERVICE, nil, $$, text_record=txt do |us|
+    begin
+      t = Time.now + ANNOUNCE_PHASE_DELAY
+      c = 0
+
+      while true
+        c += 1 if c < ANNOUNCE_PHASE_SEARCHES
+        announce_phase_searches_completed << true if c == ANNOUNCE_PHASE_SEARCHES && Time.now > t
+
+        # Have we lost?
+        dnssd_search build do |them|
+          a, b = [them.text_record['uuid'], uuid].map { |u| Digest::SHA1.digest u }
+          if a > b
+            raise LostLeadership 
+          end
+        end
+      end
+    ensure
+      announce_phase_searches_completed << false
+    end
+  end
+
+  # If we're still leading after the announce phase, we're the guy!
+  announce_phase_searches_completed.pop
+  return unless service.started?
+
+  while service.started?
+    begin
+      puts "LEAD"
+    rescue Errno::EPIPE
+      return
+    end
+  end
+end
+
+opts = Trollop::options do
+  banner <<-EOS
+Local network build leadership (plumbing)
+
+You probably don't want to be running this directly.
+
+Usage:
+\tbt agent <build>
+  EOS
+end
+
+if (build = ARGV.shift)
+  search_phase(build) && announce_phase(build)
+else
+  puts 'No build specified'
+end
