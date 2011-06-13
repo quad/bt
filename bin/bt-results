@@ -12,20 +12,21 @@ Usage:
 \tbt results
   EOS
   opt :debug, 'Debugging text scrolls'
-  opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
+  opt :uri, 'Give the results for a specified URI', :short => :u, :type => :string, :default => Dir.pwd
   opt :commit, 'Commit to get results for', :default => 'HEAD'
 end
 
 Grit.debug = true if opts[:debug]
 
-r = BT::Repository.new opts[:directory]
+BT::Repository.mirror(opts[:uri]) do |r|
+  r.update
+  commit = r.commit(opts[:commit])
+  stages = commit.pipeline.stages.sort {|a, b| b.needs.count <=> a.needs.count }
 
-commit = r.commit(opts[:commit])
-stages = commit.pipeline.stages.sort {|a, b| b.needs.count <=> a.needs.count }
+  puts "Results (#{commit.sha}):\n\n"
 
-puts "Results (#{commit.sha}):\n\n"
-
-stages.each do |stage|
-  puts "#{stage.name}: #{stage.result}"
+  stages.each do |stage|
+    puts "#{stage.name}: #{stage.result}"
+  end
 end
 

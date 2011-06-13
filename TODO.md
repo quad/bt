@@ -1,7 +1,7 @@
 = Bugs
 
 * Should commit results as merge commit of their needs
-
+* Watching an invalid repo crashes hard.
 
 = Wishlist
 
@@ -28,10 +28,6 @@
 
 * Should build from a working directory
   * From a stash?
-* Should run again arbitrary commits
-* Should be able to watch multiple repos
-  * Detect repos via bonjour
-
 
 == bt-watch
 
@@ -45,6 +41,8 @@
   * Other agents?
 * Should re-poll results on the remote repository
   * Maintain the refs properly in refs/remotes/origin/bt/
+* Should be able to watch multiple repos
+  * Detect repos via bonjour
 
 
 == bt-agent

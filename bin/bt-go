@@ -15,6 +15,7 @@ Usage:
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :once, 'Build only the next ready stage'
+  opt :commit, 'Build the specified commit', :default => 'HEAD'
   opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
 end
 
@@ -22,7 +23,7 @@ Grit.debug = true if opts[:debug]
 
 r = BT::Repository.new opts[:directory]
 
-while (stage = r.head.pipeline.ready.first)
+while (stage = r.commit(opts[:commit]).pipeline.ready.first)
   stage.build
   puts "#{stage.name}: #{stage.result}"
   break if opts[:once]

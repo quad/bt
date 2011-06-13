@@ -92,6 +92,8 @@ run: exit 1
     it { should be_ready }
     
     context "with first stage built" do
+      let(:first_result) { project.bt_ref('first', source_commit).commit }
+
       before { project.build }
       
       it { should be_ready }
@@ -108,6 +110,8 @@ run: exit 1
 
         its(:message) { should == "PASS bt loves you" }
       end
+
+      it { should have_results :first => first_result }
    end
 
     context "with second stage built" do
@@ -127,6 +131,15 @@ run: exit 1
 
         its(:message) { should == "PASS bt loves you" }
       end
+
+      context "its results" do
+        subject { project }
+
+        let(:first_result) { project.bt_ref('first', source_commit).commit }
+        let(:second_result) { project.bt_ref('second', source_commit).commit }
+
+        it { should have_results :first => first_result, :second => second_result }
+      end
     end
   end
 end
@@ -144,6 +157,15 @@ RSpec::Matchers.define :have_file_content do |name, content|
 
   failure_message_for_should do |tree|
     "Expected #{name.inspect} to have content #{content.inspect} but had #{(tree / name).data.inspect}"
+  end
+end
+
+RSpec::Matchers.define :have_results do |results|
+  match do |project|
+    result_string = project.results
+    results.all? do |stage, result_commit|
+      result_string.index /^#{stage.to_s}: (PASS|FAIL) bt loves you \(#{result_commit.sha}\)$/
+    end
   end
 end
 
@@ -187,6 +209,12 @@ class Project
   def build
     output = %x{./bin/bt-go --once --debug --directory #{repo.working_dir} 2>&1}
     raise output unless $?.exitstatus.zero?
+  end
+
+  def results
+    output = %x{./bin/bt-results --debug --uri #{repo.working_dir} 2>&1}
+    raise output unless $?.exitstatus.zero?
+    output
   end
 
   def ready?
