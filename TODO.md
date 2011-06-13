@@ -43,6 +43,8 @@
   * Available? Busy?
   * Active log
   * Other agents?
+* Should re-poll results on the remote repository
+  * Maintain the refs properly in refs/remotes/origin/bt/
 
 
 == bt-agent
