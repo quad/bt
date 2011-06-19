@@ -17,6 +17,7 @@ EM.run {
     agent.stopped { go.stop }
     agent.stopped { ready.next }
 
+    go.line { |line| puts line }
     go.done { puts "#{commit}/#{stage}: DONE" }
     go.done { agent.stop }
   end

@@ -51,14 +51,19 @@ class Go
     @commit = commit
     @stage = stage
     @done = EM::DefaultDeferrable.new
+    @line_callbacks = []
   end
 
   def done &block
     @done.callback &block
   end
 
+  def line &block
+    @line_callbacks << block
+  end
+
   def build
-    @connection = EM.popen("bin/bt-go --commit #{@commit} --stage #{@stage}", Process, @done)
+    @connection = EM.popen("bin/bt-go --commit #{@commit} --stage #{@stage}", Process, @done, @line_callbacks)
   end
 
   def stop
@@ -66,11 +71,15 @@ class Go
   end
 
   class Process < EM::Connection
-    def initialize done
+    def initialize done, line_callbacks
       @done = done
+      @line_callbacks = line_callbacks
     end
 
    def receive_data data
+     (@buffer ||= BufferedTokenizer.new).extract(data).each do |line|
+       @line_callbacks.each { |c| c.call line }
+     end
    end
 
     def unbind
