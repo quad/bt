@@ -22,6 +22,8 @@ results:
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }
       end
+
+      its(:ready_stages) { should be_empty }
     end
   end
 
@@ -113,13 +115,14 @@ results:
       eos
     end
 
-    let(:first_result) { project.bt_ref('first', project.head).commit }
-    let(:second_result) { project.bt_ref('second', project.head).commit }
-
     it { should be_ready }
+
+    its(:ready_stages) { should == ["#{project.head.sha}/first"]}
 
     after_executing 'bt-go --once' do
       it { should be_ready }
+
+      its(:ready_stages) { should == ["#{project.head.sha}/second"] }
 
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }

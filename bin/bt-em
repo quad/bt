@@ -43,7 +43,7 @@ class Ready
 
     def receive_data data
       (@buffer ||= BufferedTokenizer.new).extract(data).each do |line|
-        commit, stage = line.split ' '
+        commit, stage = line.split '/'
         @readies << {:commit => commit, :stage => stage}
       end
     end

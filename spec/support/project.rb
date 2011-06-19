@@ -161,10 +161,14 @@ module Project
       output
     end
 
-    def ready?
-      output = %x{bt-ready #{repo.working_dir}}
+    def ready_stages opts = ""
+      output = %x{bt-ready #{opts} #{repo.working_dir}}
       raise output unless $?.exitstatus.zero?
-      !output.empty?
+      output.split "\n"
+    end
+
+    def ready?
+      !ready_stages.empty?
     end
   end
 end
