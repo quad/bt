@@ -6,15 +6,18 @@ require 'bt/em_cli'
 
 EM.run {
   ready = Ready.new do |commit, stage|
-    puts commit, stage
     agent = Agent.new "#{commit}/#{stage}"
 
     go = Go.new commit, stage
-    
+
+    agent.leading { puts "#{commit}/#{stage}: START" }
     agent.leading { go.build }
+
+    agent.stopped { puts "#{commit}/#{stage}: AGENT STOP" }
     agent.stopped { go.stop }
     agent.stopped { ready.next }
 
+    go.done { puts "#{commit}/#{stage}: DONE" }
     go.done { agent.stop }
   end
  
