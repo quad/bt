@@ -21,7 +21,7 @@ class Ready
       if readies.empty?
         @none.succeed
       else
-        next_ready = readies.shift
+        next_ready = readies.shuffle.shift
         @callback.call next_ready[:commit], next_ready[:stage]
       end
     end
@@ -132,7 +132,7 @@ EM.run {
     go = Go.new commit, stage
     
     agent.leading { go.build }
-    agent.stopped { go.stop }
+    agent.stopped { go.stop; ready.next }
 
     go.done { agent.stop }
     go.done { ready.next }
