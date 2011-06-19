@@ -132,10 +132,10 @@ EM.run {
     go = Go.new commit, stage
     
     agent.leading { go.build }
-    agent.stopped { go.stop; ready.next }
+    agent.stopped { go.stop }
+    agent.stopped { ready.next }
 
     go.done { agent.stop }
-    go.done { ready.next }
   end
  
   ready.none { EM.stop }
