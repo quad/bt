@@ -19,7 +19,7 @@ module BT
 
     def stages
       (commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new pipeline, self, stage_blob.basename, YAML::load(stage_blob.data)
+        Stage.new self, stage_blob.basename, YAML::load(stage_blob.data)
       end
     end
 

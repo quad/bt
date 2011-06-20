@@ -1,12 +1,12 @@
 module BT
   require 'yaml'
 
-  class Stage < Struct.new(:pipeline, :commit, :name, :specification, :needs, :run, :results)
+  class Stage < Struct.new(:commit, :name, :specification, :needs, :run, :results)
 
     MSG = 'bt loves you'
 
-    def initialize(pipeline, commit, name, specification)
-      super(pipeline, commit, name, specification, [], nil, [])
+    def initialize(commit, name, specification)
+      super(commit, name, specification, [], nil, [])
       merge! specification
     end
 
