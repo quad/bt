@@ -39,7 +39,7 @@ module BT
     end
 
     def ready?
-      needs.all?(&:done?)
+      needs.all?(&:done?) && !done?
     end
 
     def run
@@ -67,15 +67,7 @@ module BT
 
   class Pipeline < Struct.new :commit
     def ready
-      incomplete.select { |stage| stage.ready? }
-    end
-
-    def stages
-      commit.stages
-    end
-
-    def incomplete
-      stages.select { |s| !s.done? }
+      commit.stages.select(&:ready?)
     end
   end
 end

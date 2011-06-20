@@ -21,7 +21,7 @@ Grit.debug = true if opts[:debug]
 BT::Repository.mirror(opts[:uri]) do |r|
   r.update
   commit = r.commit(opts[:commit])
-  stages = commit.pipeline.stages.sort {|a, b| b.needs.count <=> a.needs.count }
+  stages = commit.stages.sort {|a, b| b.needs.count <=> a.needs.count }
 
   puts "Results (#{commit.sha}):\n\n"
 
