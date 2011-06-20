@@ -28,7 +28,7 @@ module BT
     end
 
     def ready?
-      (needs - pipeline.done).empty?
+      needs.all?(&:done?)
     end
 
     def run
