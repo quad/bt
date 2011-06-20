@@ -1,6 +1,6 @@
 require 'bt/cli'
 require 'bt/git'
-require 'bt/pipeline'
+require 'bt/stage'
 
 module BT
   VERSION = '0.0.1'
