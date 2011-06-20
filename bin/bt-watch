@@ -22,7 +22,7 @@ uri = ARGV.shift || Dir.pwd
 
 class Agent < Struct.new :io
   def self.start stage
-    build = "#{stage.pipeline.commit.sha}/#{stage.name}"
+    build = "#{stage.commit.sha}/#{stage.name}"
 
     IO.popen("#{find_command :agent} #{build}") do |io|
       yield new io
@@ -42,7 +42,7 @@ end
 BT::Repository.mirror(uri) do |r|
   while true
     r.update
-    if stage = r.head.pipeline.ready.shuffle.first
+    if stage = r.head.stages.select(&:ready?).shuffle.first
       Agent.start stage do |a|
         if a.leading?
           stage.build
