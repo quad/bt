@@ -20,7 +20,7 @@ r = BT::Repository.new opts[:directory]
 
 specification = (r.commit(opts[:commit]).tree / 'stages').blobs.map do |blob|
   specification = YAML.load(blob.data)
-  {blob.basename => ({'needs' => [], 'results' => [], 'run' => ''}.merge(specification))}
+  [blob.basename, ({'needs' => [], 'results' => [], 'run' => ''}.merge(specification))]
 end
 
-y specification
+y Hash[specification]
