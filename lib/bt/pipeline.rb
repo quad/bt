@@ -18,9 +18,8 @@ module BT
       result
     end
 
-    #TODO: Remove dependency on pipeline
     def needs
-      pipeline.stages.select { |s| self[:needs].include? s.name }
+      commit.stages.select { |s| self[:needs].include? s.name }
     end
 
     def build
@@ -72,9 +71,7 @@ module BT
     end
 
     def stages
-      (commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new self, commit, stage_blob.basename, YAML::load(stage_blob.data)
-      end
+      commit.stages
     end
 
     def incomplete
