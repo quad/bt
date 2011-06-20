@@ -66,10 +66,6 @@ module BT
   end
 
   class Pipeline < Struct.new :commit
-    def result stage
-      commit.result stage.name
-    end
-
     def ready
       incomplete.select { |stage| stage.ready? }
     end
@@ -80,12 +76,8 @@ module BT
       end
     end
 
-    def done
-      stages.select { |s| s.done? }
-    end
-
     def incomplete
-      stages - done
+      stages.select { |s| !s.done? }
     end
   end
 end
