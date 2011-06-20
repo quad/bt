@@ -64,10 +64,4 @@ module BT
       hash.each_pair { |k, v| self[k] = v }
     end
   end
-
-  class Pipeline < Struct.new :commit
-    def ready
-      commit.stages.select(&:ready?)
-    end
-  end
 end
