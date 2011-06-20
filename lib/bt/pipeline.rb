@@ -18,6 +18,7 @@ module BT
       result
     end
 
+    #TODO: Remove dependency on pipeline
     def needs
       pipeline.stages.select { |s| self[:needs].include? s.name }
     end
