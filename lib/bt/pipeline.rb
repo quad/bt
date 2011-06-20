@@ -2,6 +2,9 @@ module BT
   require 'yaml'
 
   class Stage < Struct.new(:pipeline, :commit, :name, :specification, :needs, :run, :results)
+
+    MSG = 'bt loves you'
+
     def initialize(pipeline, commit, name, specification)
       super(pipeline, commit, name, specification, [], nil, [])
       merge! specification
@@ -20,7 +23,15 @@ module BT
     end
 
     def build
-      pipeline.build self
+      commit.workspace(needs.map(&:result)) do
+        status, log = run
+
+        files = results.select {|fn| File.readable? fn}
+        flag = (files == results) && status.zero?
+        message = "#{flag ? :PASS : :FAIL} #{MSG}\n\n#{log}"
+
+        [name, message, files]
+      end
     end
 
     def result
@@ -55,8 +66,6 @@ module BT
   end
 
   class Pipeline < Struct.new :commit
-    MSG = 'bt loves you'
-
     def result stage
       commit.result stage.name
     end
@@ -77,18 +86,6 @@ module BT
 
     def incomplete
       stages - done
-    end
-
-    def build stage
-      commit.workspace(stage.needs.map(&:result)) do
-        status, log = stage.run
-
-        files = stage.results.select {|fn| File.readable? fn}
-        flag = (files == stage.results) && status.zero?
-        message = "#{flag ? :PASS : :FAIL} #{MSG}\n\n#{log}"
-
-        [stage.name, message, files]
-      end
     end
   end
 end
