@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bt'
+require 'yaml'
+
+opts = Trollop::options do
+  banner <<-EOS
+  Shows canonical stage definition for commit.
+
+Usage: bt-stages  
+  EOS
+
+  opt :commit, 'Commit to generate stage definition from', :default => 'HEAD'
+  opt :directory, 'Directory of repository.', :default => Dir.pwd
+end
+
+r = BT::Repository.new opts[:directory]
+
+specification = (r.commit(opts[:commit]).tree / 'stages').blobs.map do |blob|
+  specification = YAML.load(blob.data)
+  {blob.basename => ({'needs' => [], 'results' => [], 'run' => ''}.merge(specification))}
+end
+
+y specification
