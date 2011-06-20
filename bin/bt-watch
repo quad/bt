@@ -2,67 +2,27 @@
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
-require 'bt'
+require 'bt/em_cli'
 
-include BT::Cli
+EM.run {
+  ready = Ready.new do |commit, stage|
+    agent = Agent.new "#{commit}/#{stage}"
+    go = Go.new commit, stage
 
-opts = Trollop::options do
-  banner <<-EOS
-Watch a repository for stages to build
+    agent.leading { puts "#{commit}/#{stage}: START" }
+    agent.leading { go.build }
 
-Usage:
-\tbt-watch [repository]
-  EOS
-  opt :debug, "Debugging text scrolls"
-end
+    agent.stopped { puts "#{commit}/#{stage}: AGENT STOP" }
+    agent.stopped { go.stop }
+    agent.stopped { ready.next }
 
-Grit.debug = true if opts[:debug]
-
-uri = ARGV.shift || Dir.pwd
-
-class Agent < Struct.new :io
-  def self.start stage
-    build = "#{stage.commit.sha}/#{stage.name}"
-
-    IO.popen("#{find_command :agent} #{build}") do |io|
-      yield new io
-    end
+    go.line { |line| puts line }
+    go.done { puts "#{commit}/#{stage}: DONE" }
+    go.done { agent.stop }
   end
+  
+  ready.none { EM.stop }
 
-  def leading?
-    begin
-      io.readline
-    rescue EOFError
-      false
-    end
-  end
-end
+  ready.next
+}
 
-# TODO: Why does this BT:: reference need to be fully qualified?
-BT::Repository.mirror(uri) do |r|
-  while true
-    r.update
-
-    commit = r.head
-    stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
-    pipeline = BT::Pipeline.new commit, stage_definition
-
-    if stage = pipeline.ready.shuffle.first
-      Agent.start stage do |a|
-        if a.leading?
-          stage.build
-          puts "#{stage.name}: #{stage.result} DONE"
-          # TODO: r.push does all stages. So this error message is a lie.
-          # Also, what about network failures and such?
-          if a.leading?
-            if r.push
-              puts "#{stage.name}: #{stage.result} PUSHED"
-            else
-              puts "#{stage.name}: #{stage.result} IGNORE"
-            end
-          end
-        end
-      end
-    end
-  end
-end
