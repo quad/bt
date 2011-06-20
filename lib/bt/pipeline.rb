@@ -1,7 +1,7 @@
 module BT
   require 'yaml'
 
-  class Stage < Struct.new(:pipeline, :name, :specification, :needs, :run, :results)
+  class Stage < Struct.new(:pipeline, :commit, :name, :specification, :needs, :run, :results)
     def ok?
       (r = result) && r.message.start_with?('PASS')
     end
@@ -10,8 +10,8 @@ module BT
       result
     end
 
-    def initialize(pipeline, name, specification)
-      super(pipeline, name, specification, [], nil, [])
+    def initialize(pipeline, commit, name, specification)
+      super(pipeline, commit, name, specification, [], nil, [])
       merge! specification
     end
 
@@ -67,7 +67,7 @@ module BT
 
     def stages
       (commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new self, stage_blob.basename, YAML::load(stage_blob.data)
+        Stage.new self, commit, stage_blob.basename, YAML::load(stage_blob.data)
       end
     end
 
