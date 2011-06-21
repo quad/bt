@@ -25,19 +25,7 @@ stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} 
 
 r = BT::Repository.new opts[:directory]
 
-class Pipeline < Struct.new(:commit, :stage_definition)
-  def stages
-    stage_definition.map do |name, definition|
-      BT::Stage.new commit, name, definition
-    end
-  end
-
-  def ready
-    stages.select(&:ready?)
-  end
-end
-
-pipeline = Pipeline.new(r.commit(opts[:commit]), stage_definition)
+pipeline = BT::Pipeline.new(r.commit(opts[:commit]), stage_definition)
 
 while (stage = pipeline.ready.first)
   stage.build
