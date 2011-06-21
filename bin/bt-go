@@ -21,13 +21,9 @@ end
 
 Grit.debug = true if opts[:debug]
 
-stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} --directory #{opts[:directory]}`)
-
 r = BT::Repository.new opts[:directory]
 
-pipeline = BT::Pipeline.new(r.commit(opts[:commit]), stage_definition)
-
-while (stage = pipeline.ready.first)
+while (stage = r.commit(opts[:commit]).stages.select(&:ready?).first)
   stage.build
   puts "#{stage.name}: #{stage.result}"
   break if opts[:once]
