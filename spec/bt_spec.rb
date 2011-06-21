@@ -99,6 +99,25 @@ run: exit 1
       eos
     end
 
+    its(:definition) do
+      should == <<-EOS
+--- 
+first: 
+  needs: []
+
+  results: 
+  - new_file
+  run: echo \"blah\" > new_file
+second: 
+  needs: 
+  - first
+  results: 
+  - new_file
+  run: echo \"blah blah\" >> new_file
+      EOS
+    end
+
+
     let(:source_commit) { project.repo.commits.first }
 
     it { should be_ready }
