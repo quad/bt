@@ -68,6 +68,34 @@ results:
     end
   end
 
+  describe "a repo with a bt build, which has built a stage with needs" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: exit 0
+      eos
+
+      p.stage :second, <<-eos
+  run: exit 0
+  needs:
+    - first
+      eos
+
+      p.stage :third, <<-eos
+  run: exit 0
+  needs:
+    - second
+      eos
+    end
+
+    let!(:initial_commit) { project.repo.commits.first }
+
+    after_executing 'bt-go --stage second' do
+      it { should have_bt_ref 'first', initial_commit }
+      it { should have_bt_ref 'second', initial_commit }
+      it { should_not have_bt_ref 'third', initial_commit }
+    end
+  end
+
   describe "a repo with two dependent stages" do
     project do |p|
       p.stage :first, <<-eos

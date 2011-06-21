@@ -22,7 +22,14 @@ module BT
       result
     end
 
+    def incomplete?
+      !done?
+    end
+
     def build
+      needs.select(&:incomplete?).each do |need|
+        need.build
+      end
       commit.workspace(needs.map(&:result)) do
         status, log = run
 
