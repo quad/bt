@@ -26,7 +26,7 @@ r = BT::Repository.new opts[:directory]
 
 commit = r.commit(opts[:commit])
 
-stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} #{opts[:directory]}`)
+stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} "#{opts[:directory]}"`)
 
 pipeline = BT::Pipeline.new commit, stage_definition
 

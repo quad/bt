@@ -49,7 +49,7 @@ second:
     end
   end
 
-  context "with a definition with two unordered stages" do
+  context "with a definition with two out of order stages" do
     let(:commit) { mock(:commit) }
     let(:definition) do
       <<-EOS
