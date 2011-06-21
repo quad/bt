@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+PATH=$PATH:"$(pwd)/bin"
+
+exec $@
