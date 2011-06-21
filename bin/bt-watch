@@ -42,7 +42,12 @@ end
 BT::Repository.mirror(uri) do |r|
   while true
     r.update
-    if stage = r.head.stages.select(&:ready?).shuffle.first
+
+    commit = r.head
+    stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} --directory #{r.path}`)
+    pipeline = BT::Pipeline.new commit, stage_definition
+
+    if stage = pipeline.ready.shuffle.first
       Agent.start stage do |a|
         if a.leading?
           stage.build
