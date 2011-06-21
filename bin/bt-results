@@ -25,7 +25,7 @@ BT::Repository.mirror(opts[:uri]) do |r|
   r.update
   commit = r.commit(opts[:commit])
 
-  stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} --directory #{r.path}`)
+  stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} #{r.path}`)
 
   pipeline = BT::Pipeline.new commit, stage_definition
 

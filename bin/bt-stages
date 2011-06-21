@@ -9,14 +9,15 @@ opts = Trollop::options do
   banner <<-EOS
   Shows canonical stage definition for commit.
 
-Usage: bt-stages  
+Usage: bt-stages [OPTS...] [DIRECTORY]
   EOS
 
   opt :commit, 'Commit to generate stage definition from', :default => 'HEAD'
-  opt :directory, 'Directory of repository.', :default => Dir.pwd
 end
 
-r = BT::Repository.new opts[:directory]
+directory = ARGV.shift || Dir.pwd
+
+r = BT::Repository.new directory
 
 specification = (r.commit(opts[:commit]).tree / 'stages').blobs.map do |blob|
   specification = YAML.load(blob.data)
