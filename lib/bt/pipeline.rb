@@ -4,6 +4,7 @@ require 'set'
 module BT
   class Pipeline < Struct.new(:commit, :stage_definition)
     def stages
+      stage_definition = self[:stage_definition].dup
       Set.new.tap do |known_stages|
         while !stage_definition.empty?
           name, definition = next_satisfied! stage_definition, known_stages
