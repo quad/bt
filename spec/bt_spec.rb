@@ -1,6 +1,8 @@
 require 'forwardable'
 require 'grit'
 
+ENV['PATH'] = ENV['PATH'] + ':' + File.join(File.dirname(__FILE__), '/../bin')
+
 describe 'bt-go' do
   def self.project &block
     let!(:project) { Project.at(Dir.mktmpdir, &block) }
@@ -207,18 +209,18 @@ class Project
   end
 
   def build
-    output = %x{./env bt-go --once --debug --directory #{repo.working_dir} 2>&1}
+    output = %x{bt-go --once --debug --directory #{repo.working_dir} 2>&1}
     raise output unless $?.exitstatus.zero?
   end
 
   def results
-    output = %x{./env bt-results --debug --uri #{repo.working_dir} 2>&1}
+    output = %x{bt-results --debug --uri #{repo.working_dir} 2>&1}
     raise output unless $?.exitstatus.zero?
     output
   end
 
   def ready?
-    output = %x{./env bt-ready #{repo.working_dir}}
+    output = %x{bt-ready #{repo.working_dir}}
     raise output unless $?.exitstatus.zero?
     !output.empty?
   end
