@@ -18,19 +18,9 @@ end
 directory = ARGV.shift || Dir.pwd
 
 BT::Repository.mirror(directory) do |r|
-  r.working_tree :commit => opts[:commit] do |t|
-    specification = {}
-    stage_dir = File.join(Dir.pwd, 'stages')
+  r.working_tree opts[:commit] do |t|
+    stage_files = Dir[File.join(Dir.pwd, 'stages', '*')]
 
-    Dir.glob(File.join(stage_dir, '*')).each do |filename|
-      if File.executable?(filename)
-        specification.merge!(YAML.load(`#{filename}`))
-      else
-        yaml = YAML.load(File.open(filename).read)
-        specification.merge!({File.basename(filename) => {'needs' => [], 'results' => [], 'run' => ''}.merge(yaml)})
-      end
-    end
-
-    y specification
+    y BT::StageSpecification.new(stage_files).to_hash
   end
 end
