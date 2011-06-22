@@ -18,9 +18,7 @@ end
 directory = ARGV.shift || Dir.pwd
 
 BT::Repository.mirror(directory) do |r|
-  r.working_tree do |t|
-    t.checkout opts[:commit]
-
+  r.working_tree :commit => opts[:commit] do |t|
     specification = {}
     stage_dir = File.join(Dir.pwd, 'stages')
 

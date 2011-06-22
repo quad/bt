@@ -48,11 +48,14 @@ module BT
       end
     end
 
-    def working_tree &block
+    def working_tree opts = {:commit => 'HEAD'}, &block
       Dir.mktmpdir do |tmp_dir|
         # TODO: Grit::Git::GitTimeout on long checkouts?
         git.clone({:recursive => true}, path, tmp_dir)
-        WorkingTree.new tmp_dir, &block
+        WorkingTree.new tmp_dir do |tree|
+          tree.branch_of opts[:commit]
+          block.call tree
+        end
       end
     end
 
@@ -134,7 +137,7 @@ module BT
         })
       end
 
-      def checkout sha
+      def branch_of sha
         git.checkout({:raise => true, :b => true}, UUID.new.generate, sha)
       end
 
