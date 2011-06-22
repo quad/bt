@@ -8,7 +8,7 @@ require 'yaml'
 include BT::Cli
 
 single_repo_cmd('ready', 'List stages ready to go') do |r|
-  stage_definition = YAML.load(`#{find_command :stages} --commit HEAD #{r.path}`)
+  stage_definition = YAML.load(`#{find_command :stages} --commit HEAD "#{r.path}"`)
   pipeline = BT::Pipeline.new r.head, stage_definition
   pipeline.ready.each { |s| puts s.name }
 end
