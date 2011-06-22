@@ -17,11 +17,22 @@ end
 
 directory = ARGV.shift || Dir.pwd
 
-r = BT::Repository.new directory
+BT::Repository.mirror(directory) do |r|
+  r.working_tree do |t|
+    t.checkout opts[:commit]
 
-specification = (r.commit(opts[:commit]).tree / 'stages').blobs.map do |blob|
-  specification = YAML.load(blob.data)
-  [blob.basename, ({'needs' => [], 'results' => [], 'run' => ''}.merge(specification))]
+    specification = {}
+    stage_dir = File.join(Dir.pwd, 'stages')
+
+    Dir.glob(File.join(stage_dir, '*')).each do |filename|
+      if File.executable?(filename)
+        specification.merge!(YAML.load(`#{filename}`))
+      else
+        yaml = YAML.load(File.open(filename).read)
+        specification.merge!({File.basename(filename) => {'needs' => [], 'results' => [], 'run' => ''}.merge(yaml)})
+      end
+    end
+
+    y specification
+  end
 end
-
-y Hash[specification]

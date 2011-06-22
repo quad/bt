@@ -3,6 +3,7 @@ module BT
   require 'forwardable'
   require 'grit'
   require 'tmpdir'
+  require 'uuid'
 
   class Commit < Struct.new :repository, :commit
     extend Forwardable
@@ -131,6 +132,10 @@ module BT
           :cleanup => 'verbatim',
           :message => "#{message.strip}"
         })
+      end
+
+      def checkout sha
+        git.checkout({:raise => true, :b => true}, UUID.new.generate, sha)
       end
 
       def checkout_result commit
