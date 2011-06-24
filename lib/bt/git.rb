@@ -17,12 +17,6 @@ module BT
       repository.result(self, name)
     end
 
-    def stages
-      (commit.tree / 'stages').blobs.map do |stage_blob|
-        Stage.new self, stage_blob.basename, YAML::load(stage_blob.data)
-      end
-    end
-
     def workspace depends, &block
       repository.working_tree do |t|
         depends.each { |n| t.checkout_result n}

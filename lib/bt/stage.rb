@@ -18,10 +18,6 @@ module BT
       result
     end
 
-    def needs
-      commit.stages.select { |s| self[:needs].include? s.name }
-    end
-
     def build
       commit.workspace(needs.map(&:result)) do
         status, log = run
