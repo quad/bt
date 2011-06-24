@@ -41,6 +41,7 @@
   * Other agents?
 * Should re-poll results on the remote repository
   * Maintain the refs properly in refs/remotes/origin/bt/
+* Should not lose references to invalidated builds.
 * Should be able to watch multiple repos
   * Detect repos via bonjour
 

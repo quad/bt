@@ -3,6 +3,7 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'bt'
+require 'yaml'
 
 opts = Trollop::options do
   banner <<-EOS
@@ -16,16 +17,21 @@ Usage:
   opt :commit, 'Commit to get results for', :default => 'HEAD'
 end
 
+include BT::Cli
+
 Grit.debug = true if opts[:debug]
 
 BT::Repository.mirror(opts[:uri]) do |r|
   r.update
   commit = r.commit(opts[:commit])
-  stages = commit.stages.sort {|a, b| b.needs.count <=> a.needs.count }
+
+  stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
+
+  pipeline = BT::Pipeline.new commit, stage_definition
 
   puts "Results (#{commit.sha}):\n\n"
 
-  stages.each do |stage|
+  pipeline.stages.each do |stage|
     puts "#{stage.name}: #{stage.result}"
   end
 end
