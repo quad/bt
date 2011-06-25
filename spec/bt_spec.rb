@@ -251,7 +251,7 @@ class Project
   end
 
   def definition
-    output = %x{./bin/bt-stages #{repo.working_dir}}
+    output = %x{bt-stages #{repo.working_dir}}
     raise output unless $?.exitstatus.zero?
     output
   end
