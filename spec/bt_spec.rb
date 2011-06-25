@@ -1,7 +1,7 @@
 require 'forwardable'
 require 'grit'
 
-ENV['PATH'] = ENV['PATH'] + ':' + File.join(File.dirname(__FILE__), '/../bin')
+ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
 describe 'bt-go' do
   def self.project &block
