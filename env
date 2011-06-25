@@ -1,5 +1,5 @@
 #!/bin/sh -e
 
-PATH=$PATH:"$(pwd)/bin"
+PATH="$(pwd)/bin":$PATH
 
 exec $@
