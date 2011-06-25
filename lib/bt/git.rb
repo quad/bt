@@ -127,7 +127,7 @@ module BT
         git.commit({
           :raise => true,
           :author => 'Build Thing <build@thing.invalid>',
-          :'allow-empty' => true, 
+          :'allow-empty' => true,
           :cleanup => 'verbatim',
           :message => "#{message.strip}"
         })

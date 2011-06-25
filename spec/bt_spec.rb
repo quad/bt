@@ -18,10 +18,22 @@ describe 'bt-go' do
     - new_file
       eos
     end
-    
+
     let!(:initial_commit) { project.repo.commits.first }
 
     before { project.build }
+
+    its(:definition) do
+      should == <<-EOS
+--- 
+first: 
+  needs: []
+
+  results: 
+  - new_file
+  run: echo \"blah\" > new_file
+      EOS
+    end
 
     it { should have_bt_ref 'first', initial_commit }
 
@@ -46,25 +58,25 @@ describe 'bt-go' do
     before { project.build }
 
     context "the initial commit" do
-      subject { project.bt_ref('first', initial_commit).commit } 
+      subject { project.bt_ref('first', initial_commit).commit }
 
       its(:message) { should == 'FAIL bt loves you' }
     end
   end
- 
+
   describe "a repo with a failing bt build" do
     project do |p|
       p.stage :failing, <<-eos
 run: exit 1
       eos
     end
-   
+
     let!(:initial_commit) { project.repo.commits.first }
 
     before { project.build }
 
     context "the initial commit" do
-      subject { project.bt_ref('failing', initial_commit).commit } 
+      subject { project.bt_ref('failing', initial_commit).commit }
 
       its(:message) { should == 'FAIL bt loves you' }
     end
@@ -89,15 +101,34 @@ run: exit 1
       eos
     end
 
+    its(:definition) do
+      should == <<-EOS
+--- 
+first: 
+  needs: []
+
+  results: 
+  - new_file
+  run: echo \"blah\" > new_file
+second: 
+  needs: 
+  - first
+  results: 
+  - new_file
+  run: echo \"blah blah\" >> new_file
+      EOS
+    end
+
+
     let(:source_commit) { project.repo.commits.first }
 
     it { should be_ready }
-    
+
     context "with first stage built" do
       let(:first_result) { project.bt_ref('first', source_commit).commit }
 
       before { project.build }
-      
+
       it { should be_ready }
       it { should have_bt_ref 'first', source_commit }
 
@@ -127,7 +158,7 @@ run: exit 1
 
         it { should have_file_content('new_file', "blah\nblah blah\n") }
       end
-    
+
       context "its commit" do
         subject { project.bt_ref('second', source_commit).commit }
 
@@ -215,6 +246,12 @@ class Project
 
   def results
     output = %x{bt-results --debug --uri #{repo.working_dir} 2>&1}
+    raise output unless $?.exitstatus.zero?
+    output
+  end
+
+  def definition
+    output = %x{./bin/bt-stages #{repo.working_dir}}
     raise output unless $?.exitstatus.zero?
     output
   end

@@ -1,5 +1,6 @@
 require 'bt/cli'
 require 'bt/git'
+require 'bt/stage'
 require 'bt/pipeline'
 
 module BT
