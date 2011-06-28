@@ -5,10 +5,6 @@
 
 = Wishlist
 
-* Should support dynamically defined stages
-  * Stages per:
-    * Spec
-    * Feature
 * Should support stage tags
   * Automatic tags
     * linux/windows/darwin
