@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bt'
+
+opts = Trollop::options do
+  banner <<-EOS
+Opens a shell in a isolated build environment.
+
+Usage:
+\tbt-shell
+  EOS
+  opt :debug, 'Debugging text scrolls'
+  opt :commit, 'Commit to open the shell in', :default => 'HEAD'
+end
+
+Grit.debug = true if opts[:debug]
+
+directory = ARGV.shift || Dir.pwd
+
+BT::Repository.mirror(directory) do |r|
+  r.working_tree opts[:commit] do |t|
+    system 'sh'
+  end
+end
