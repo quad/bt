@@ -175,6 +175,49 @@ second:
       end
     end
   end
+
+  describe "a repo with a stage generator" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: exit 0
+  results:
+    - new_file
+      eos
+
+      p.stage_generator :generator, <<-eos
+#!/usr/bin/env ruby
+require 'yaml'
+y ({
+   'stage' => {'run' => 'exit 0', 'needs' => [], 'results' => []},
+   'another' => {'run' => 'exit 0', 'needs' => [], 'results' => []}
+})
+      eos
+    end
+
+    its(:definition) do
+      should == <<-eos
+--- 
+first: 
+  needs: []
+
+  results: 
+  - new_file
+  run: exit 0
+stage: 
+  run: exit 0
+  needs: []
+
+  results: []
+
+another: 
+  run: exit 0
+  needs: []
+
+  results: []
+
+eos
+    end
+  end
 end
 
 RSpec::Matchers.define :have_bt_ref do |stage, commit|
@@ -233,6 +276,11 @@ class Project
       f.write(stage_config)
     end
     @repo.add "stages/#{name.to_s}"
+  end
+
+  def stage_generator name, generator_config
+    stage(name, generator_config)
+    File.chmod(0755, "#{@repo.working_dir}/stages/#{name.to_s}")
   end
 
   def bt_ref stage, commit

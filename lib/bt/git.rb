@@ -3,6 +3,7 @@ module BT
   require 'forwardable'
   require 'grit'
   require 'tmpdir'
+  require 'uuid'
 
   class Commit < Struct.new :repository, :commit
     extend Forwardable
@@ -47,11 +48,14 @@ module BT
       end
     end
 
-    def working_tree &block
+    def working_tree commit = 'HEAD', &block
       Dir.mktmpdir do |tmp_dir|
         # TODO: Grit::Git::GitTimeout on long checkouts?
         git.clone({:recursive => true}, path, tmp_dir)
-        WorkingTree.new tmp_dir, &block
+        WorkingTree.new tmp_dir do |tree|
+          tree.branch_of commit
+          block.call tree
+        end
       end
     end
 
@@ -131,6 +135,10 @@ module BT
           :cleanup => 'verbatim',
           :message => "#{message.strip}"
         })
+      end
+
+      def branch_of sha
+        git.checkout({:raise => true, :b => true}, UUID.new.generate, sha)
       end
 
       def checkout_result commit
