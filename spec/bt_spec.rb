@@ -1,5 +1,6 @@
 require 'forwardable'
 require 'grit'
+require 'yaml'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
@@ -77,6 +78,25 @@ run: exit 1
 
     context "the initial commit" do
       subject { project.bt_ref('failing', initial_commit).commit }
+
+      its(:message) { should == 'FAIL bt loves you' }
+    end
+
+    it { should_not be_ready }
+  end
+
+  describe "a repo with a failing dependant stage" do
+    project do |p|
+      p.failing_stage 'first'
+      p.passing_stage 'second', 'needs' => ['first']
+    end
+
+    let!(:initial_commit) { project.repo.commits.first }
+
+    before { project.build }
+
+    context "the first build result" do
+      subject { project.bt_ref('first', initial_commit).commit }
 
       its(:message) { should == 'FAIL bt loves you' }
     end
@@ -279,6 +299,8 @@ class Project
     end
   end
 
+  DEFAULT_STAGE_DEFINITION = {'run' => 'exit 0', 'needs' => [], 'results' => []}
+
   def self.at dir, &block
     FileUtils.cd(dir) do |dir|
       return new(dir, &block)
@@ -304,6 +326,14 @@ class Project
 
   def stage name, stage_config
     file 'stages', name, stage_config
+  end
+
+  def failing_stage name, overrides = {}
+    stage name, YAML.dump(DEFAULT_STAGE_DEFINITION.merge('run' => 'exit 1').merge(overrides))
+  end
+
+  def passing_stage name, overrides = {}
+    stage name, YAML.dump(DEFAULT_STAGE_DEFINITION.merge(overrides))
   end
 
   def stage_generator name, generator_config
