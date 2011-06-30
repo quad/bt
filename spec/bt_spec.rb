@@ -192,7 +192,24 @@ y ({
    'another' => {'run' => 'exit 0', 'needs' => [], 'results' => []}
 })
       eos
+
+      p.file 'stages/lib/', 'stage', <<-eos
+---
+stage_from_lib:
+  run: exit 0
+  results: []
+
+  needs: []
+
+      eos
+
+      p.stage_generator :lib_generator, <<-eos
+#!/bin/sh -e
+
+cat `dirname $0`/lib/stage
+      eos
     end
+
 
     its(:definition) do
       should == <<-eos
@@ -214,6 +231,12 @@ another:
   needs: []
 
   results: []
+
+stage_from_lib: 
+  run: exit 0
+  results: []
+
+  needs: []
 
 eos
     end
@@ -270,17 +293,21 @@ class Project
     @repo.commit_all("Initial commit")
   end
 
+  def file directory, name, content, mode = 0444
+    dir = File.join(@repo.working_dir, directory.to_s)
+    FileUtils.makedirs(dir)
+    file_name = File.join(dir, name.to_s)
+    File.open(file_name, 'w') { |f| f.write content }
+    File.chmod(mode, file_name)
+    @repo.add directory.to_s
+  end
+
   def stage name, stage_config
-    FileUtils.makedirs("#{@repo.working_dir}/stages")
-    File.open("#{@repo.working_dir}/stages/#{name.to_s}", 'w') do |f|
-      f.write(stage_config)
-    end
-    @repo.add "stages/#{name.to_s}"
+    file 'stages', name, stage_config
   end
 
   def stage_generator name, generator_config
-    stage(name, generator_config)
-    File.chmod(0755, "#{@repo.working_dir}/stages/#{name.to_s}")
+    file 'stages', name, generator_config, 0755
   end
 
   def bt_ref stage, commit
