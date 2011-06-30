@@ -19,7 +19,7 @@ directory = ARGV.shift || Dir.pwd
 
 BT::Repository.mirror(directory) do |r|
   r.working_tree opts[:commit] do |t|
-    stage_files = Dir[File.join(Dir.pwd, 'stages', '*')].select { |f| !File.directory?(f) }
+    stage_files = Dir[File.join(Dir.pwd, 'stages', '*')].reject { |f| File.directory?(f) }
 
     y BT::StageSpecification.new(stage_files).to_hash
   end
