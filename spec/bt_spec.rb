@@ -28,7 +28,7 @@ first:
       EOS
     end
 
-    results_for_stage 'first' do
+    results_for stage { 'first' }, commit { project.head } do
       it { should have_file_content_in_tree 'new_file', "blah\n" }
     end
   end
@@ -44,7 +44,7 @@ first:
 
     before { project.build }
 
-    results_for_stage 'first' do
+    results_for stage { 'first' }, commit { project.head } do
       its('commit.message') { should == 'FAIL bt loves you' }
     end
   end
@@ -54,7 +54,7 @@ first:
 
     before { project.build }
 
-    results_for_stage 'failing' do
+    results_for stage { 'failing' }, commit { project.head } do
       its('commit.message') { should == "FAIL bt loves you" }
     end
 
@@ -69,7 +69,7 @@ first:
 
     before { project.build }
 
-    results_for_stage 'first' do
+    results_for stage { 'first' }, commit { project.head } do
       its('commit.message') { should == "FAIL bt loves you" }
     end
 
@@ -120,7 +120,7 @@ second:
 
       it { should be_ready }
 
-      results_for_stage 'first' do
+      results_for stage { 'first' }, commit { project.head } do
         it { should have_file_content_in_tree 'new_file', "blah\n" }
         its('commit.message') { should == "PASS bt loves you" }
       end
@@ -133,7 +133,7 @@ second:
 
       it { should_not be_ready }
 
-      results_for_stage 'second' do
+      results_for stage { 'second' }, commit { project.head } do
         it { should have_file_content_in_tree 'new_file', "blah\nblah blah\n" }
         its('commit.message') { should == "PASS bt loves you" }
       end

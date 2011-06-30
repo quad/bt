@@ -9,18 +9,23 @@ module Project
     end
 
     module ClassMethods
+      alias :stage :proc
+      alias :commit :proc
+
       def project &block
         let!(:project) { Model.at(Dir.mktmpdir, &block) }
 
         subject { project }
       end
 
-      def results_for_stage name, &block
-       it { should have_bt_ref name, subject.head }
+      def results_for stage_proc, commit_proc, &block
+       it { should have_bt_ref instance_eval(&stage_proc), instance_eval(&commit_proc) }
 
-       describe "the result for #{name.inspect}" do
+       describe "the result for stage" do
           define_method(:subject) do
-            super().bt_ref(name, super().head)
+            stage = instance_eval(&stage_proc)
+            commit = instance_eval(&commit_proc)
+            super().bt_ref(stage, commit)
           end
 
           instance_eval &block
