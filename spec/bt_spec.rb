@@ -165,7 +165,24 @@ y ({
    'another' => {'run' => 'exit 0', 'needs' => [], 'results' => []}
 })
       eos
+
+      p.file 'stages/lib/', 'stage', <<-eos
+---
+stage_from_lib:
+  run: exit 0
+  results: []
+
+  needs: []
+
+      eos
+
+      p.stage_generator :lib_generator, <<-eos
+#!/bin/sh -e
+
+cat `dirname $0`/lib/stage
+      eos
     end
+
 
     its(:definition) do
       should == <<-eos
@@ -187,6 +204,12 @@ another:
   needs: []
 
   results: []
+
+stage_from_lib: 
+  run: exit 0
+  results: []
+
+  needs: []
 
 eos
     end

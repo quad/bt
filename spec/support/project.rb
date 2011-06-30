@@ -56,12 +56,17 @@ module Project
       @repo.commit_all("Initial commit")
     end
 
+    def file directory, name, content, mode = 0444
+      dir = File.join(@repo.working_dir, directory.to_s)
+      FileUtils.makedirs(dir)
+      file_name = File.join(dir, name.to_s)
+      File.open(file_name, 'w') { |f| f.write content }
+      File.chmod(mode, file_name)
+      @repo.add directory.to_s
+    end
+
     def stage name, stage_config
-      FileUtils.makedirs("#{@repo.working_dir}/stages")
-      File.open("#{@repo.working_dir}/stages/#{name.to_s}", 'w') do |f|
-        f.write(stage_config)
-      end
-      @repo.add "stages/#{name.to_s}"
+      file 'stages', name, stage_config
     end
 
     def failing_stage name, overrides = {}
@@ -77,8 +82,7 @@ module Project
     end
 
     def stage_generator name, generator_config
-      stage(name, generator_config)
-      File.chmod(0755, "#{@repo.working_dir}/stages/#{name.to_s}")
+      file 'stages', name, generator_config, 0755
     end
 
     def bt_ref stage, commit
