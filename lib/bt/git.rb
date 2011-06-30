@@ -133,7 +133,8 @@ module BT
           :author => 'Build Thing <build@thing.invalid>',
           :'allow-empty' => true,
           :cleanup => 'verbatim',
-          :message => "#{message.strip}"
+          :file => '-',
+          :input => message.strip,
         })
       end
 
