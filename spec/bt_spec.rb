@@ -7,8 +7,11 @@ describe 'bt-go' do
 
   describe "a repo with a bt build" do
     project do |p|
-      p.passing_stage :first, 'run' => 'echo "blah" > new_file',
-                              'results' => ['new_file']
+      p.stage 'first', <<-eos
+run: echo \"blah\" > new_file
+results:
+  - new_file
+      eos
     end
 
     before { project.build }
@@ -147,18 +150,10 @@ second:
       before { 2.times { project.build } }
 
       it { should_not be_ready }
-      it { should have_bt_ref 'second', project.head }
 
-      context "its results tree" do
-        subject { project.bt_ref('second', project.head).tree }
-
-        it { should have_file_content('new_file', "blah\nblah blah\n") }
-      end
-
-      context "its commit" do
-        subject { project.bt_ref('second', project.head).commit }
-
-        its(:message) { should == "PASS bt loves you" }
+      results_for_stage 'second' do
+        it { should have_file_content_in_tree 'new_file', "blah\nblah blah\n" }
+        its('commit.message') { should == "PASS bt loves you" }
       end
 
       context "its results" do
