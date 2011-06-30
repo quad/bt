@@ -134,7 +134,7 @@ module BT
           :'allow-empty' => true,
           :cleanup => 'verbatim',
           :file => '-',
-          :input => "#{message.strip}",
+          :input => message.strip,
         })
       end
 
