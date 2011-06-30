@@ -193,9 +193,9 @@ y ({
 })
       eos
 
-      p.file 'stages/lib/', 'gen', <<-eos
+      p.file 'stages/lib/', 'stage', <<-eos
 ---
-lib:
+stage_from_lib:
   run: exit 0
   results: []
 
@@ -206,7 +206,7 @@ lib:
       p.stage_generator :lib_generator, <<-eos
 #!/bin/sh -e
 
-cat `dirname $0`/lib/gen
+cat `dirname $0`/lib/stage
       eos
     end
 
@@ -232,7 +232,7 @@ another:
 
   results: []
 
-lib: 
+stage_from_lib: 
   run: exit 0
   results: []
 
