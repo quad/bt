@@ -1,5 +1,6 @@
 require 'forwardable'
 require 'grit'
+require 'yaml'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
