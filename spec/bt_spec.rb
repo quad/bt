@@ -13,14 +13,9 @@ describe 'bt-go' do
 
   describe "a repo with a bt build" do
     project do |p|
-      p.stage :first, <<-eos
-  run: echo \"blah\" > new_file
-  results:
-    - new_file
-      eos
+      p.passing_stage :first, 'run' => 'echo "blah" > new_file',
+                              'results' => ['new_file']
     end
-
-    let!(:initial_commit) { project.repo.commits.first }
 
     before { project.build }
 
@@ -36,10 +31,10 @@ first:
       EOS
     end
 
-    it { should have_bt_ref 'first', initial_commit }
+    it { should have_bt_ref 'first', project.head }
 
     context "its results tree" do
-      subject { project.bt_ref('first', initial_commit).tree }
+      subject { project.bt_ref('first', project.head).tree }
 
       it { should have_file_content('new_file', "blah\n") }
     end
@@ -54,30 +49,22 @@ first:
       eos
     end
 
-    let!(:initial_commit) { project.repo.commits.first }
-
     before { project.build }
 
     context "the initial commit" do
-      subject { project.bt_ref('first', initial_commit).commit }
+      subject { project.bt_ref('first', project.head).commit }
 
       its(:message) { should == 'FAIL bt loves you' }
     end
   end
 
   describe "a repo with a failing bt build" do
-    project do |p|
-      p.stage :failing, <<-eos
-run: exit 1
-      eos
-    end
-
-    let!(:initial_commit) { project.repo.commits.first }
+    project { |p| p.failing_stage :failing }
 
     before { project.build }
 
     context "the initial commit" do
-      subject { project.bt_ref('failing', initial_commit).commit }
+      subject { project.bt_ref('failing', project.head).commit }
 
       its(:message) { should == 'FAIL bt loves you' }
     end
@@ -91,12 +78,10 @@ run: exit 1
       p.passing_stage 'second', 'needs' => ['first']
     end
 
-    let!(:initial_commit) { project.repo.commits.first }
-
     before { project.build }
 
     context "the first build result" do
-      subject { project.bt_ref('first', initial_commit).commit }
+      subject { project.bt_ref('first', project.head).commit }
 
       its(:message) { should == 'FAIL bt loves you' }
     end
@@ -139,27 +124,24 @@ second:
       EOS
     end
 
-
-    let(:source_commit) { project.repo.commits.first }
-
     it { should be_ready }
 
     context "with first stage built" do
-      let(:first_result) { project.bt_ref('first', source_commit).commit }
+      let(:first_result) { project.bt_ref('first', project.head).commit }
 
       before { project.build }
 
       it { should be_ready }
-      it { should have_bt_ref 'first', source_commit }
+      it { should have_bt_ref 'first', project.head }
 
       context "its results tree" do
-        subject { project.bt_ref('first', source_commit).tree }
+        subject { project.bt_ref('first', project.head).tree }
 
         it { should have_file_content('new_file', "blah\n") }
       end
 
       context "its commit" do
-        subject { project.bt_ref('first', source_commit).commit }
+        subject { project.bt_ref('first', project.head).commit }
 
         its(:message) { should == "PASS bt loves you" }
       end
@@ -171,16 +153,16 @@ second:
       before { 2.times { project.build } }
 
       it { should_not be_ready }
-      it { should have_bt_ref 'second', source_commit }
+      it { should have_bt_ref 'second', project.head }
 
       context "its results tree" do
-        subject { project.bt_ref('second', source_commit).tree }
+        subject { project.bt_ref('second', project.head).tree }
 
         it { should have_file_content('new_file', "blah\nblah blah\n") }
       end
 
       context "its commit" do
-        subject { project.bt_ref('second', source_commit).commit }
+        subject { project.bt_ref('second', project.head).commit }
 
         its(:message) { should == "PASS bt loves you" }
       end
@@ -188,8 +170,8 @@ second:
       context "its results" do
         subject { project }
 
-        let(:first_result) { project.bt_ref('first', source_commit).commit }
-        let(:second_result) { project.bt_ref('second', source_commit).commit }
+        let(:first_result) { project.bt_ref('first', project.head).commit }
+        let(:second_result) { project.bt_ref('second', project.head).commit }
 
         it { should have_results :first => first_result, :second => second_result }
       end
@@ -302,6 +284,10 @@ class Project
 
   def failing_stage name, overrides = {}
     stage name, YAML.dump(DEFAULT_STAGE_DEFINITION.merge('run' => 'exit 1').merge(overrides))
+  end
+
+  def head
+    repo.commits.first
   end
 
   def passing_stage name, overrides = {}
