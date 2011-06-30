@@ -28,12 +28,8 @@ first:
       EOS
     end
 
-    it { should have_bt_ref 'first', project.head }
-
-    context "its results tree" do
-      subject { project.bt_ref('first', project.head).tree }
-
-      it { should have_file_content('new_file', "blah\n") }
+    results_for_stage 'first' do
+      it { should have_file_content_in_tree 'new_file', "blah\n" }
     end
   end
 
@@ -48,10 +44,8 @@ first:
 
     before { project.build }
 
-    context "the initial commit" do
-      subject { project.bt_ref('first', project.head).commit }
-
-      its(:message) { should == 'FAIL bt loves you' }
+    results_for_stage 'first' do
+      its('commit.message') { should == 'FAIL bt loves you' }
     end
   end
 
@@ -60,10 +54,8 @@ first:
 
     before { project.build }
 
-    context "the initial commit" do
-      subject { project.bt_ref('failing', project.head).commit }
-
-      its(:message) { should == 'FAIL bt loves you' }
+    results_for_stage 'failing' do
+      its('commit.message') { should == "FAIL bt loves you" }
     end
 
     it { should_not be_ready }
@@ -77,10 +69,8 @@ first:
 
     before { project.build }
 
-    context "the first build result" do
-      subject { project.bt_ref('first', project.head).commit }
-
-      its(:message) { should == 'FAIL bt loves you' }
+    results_for_stage 'first' do
+      its('commit.message') { should == "FAIL bt loves you" }
     end
 
     it { should_not be_ready }
@@ -129,18 +119,10 @@ second:
       before { project.build }
 
       it { should be_ready }
-      it { should have_bt_ref 'first', project.head }
 
-      context "its results tree" do
-        subject { project.bt_ref('first', project.head).tree }
-
-        it { should have_file_content('new_file', "blah\n") }
-      end
-
-      context "its commit" do
-        subject { project.bt_ref('first', project.head).commit }
-
-        its(:message) { should == "PASS bt loves you" }
+      results_for_stage 'first' do
+        it { should have_file_content_in_tree 'new_file', "blah\n" }
+        its('commit.message') { should == "PASS bt loves you" }
       end
 
       it { should have_results :first => first_result }

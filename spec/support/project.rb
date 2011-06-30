@@ -16,7 +16,7 @@ module Project
       end
 
       def results_for_stage name, &block
-       it { should have_bt_ref 'second', subject.head }
+       it { should have_bt_ref name, subject.head }
 
        describe "the result for #{name.inspect}" do
           define_method(:subject) do
