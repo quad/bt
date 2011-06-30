@@ -35,7 +35,7 @@ module BT
     end
 
     def ready?
-      needs.all?(&:done?) && !done?
+      needs.all?(&:ok?) && !done?
     end
 
     def run
