@@ -1,5 +1,5 @@
 require 'bt'
-require 'bt/psych'
+require 'bt/yaml'
 require 'support/file_builder'
 
 include BT

@@ -1,6 +1,6 @@
 require 'forwardable'
 require 'grit'
-require 'bt/psych'
+require 'bt/yaml'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
