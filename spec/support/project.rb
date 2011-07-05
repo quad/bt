@@ -18,14 +18,24 @@ module Project
         subject { project }
       end
 
-      def results_for stage_proc, commit_proc, &block
-       it { should have_bt_ref instance_eval(&stage_proc), instance_eval(&commit_proc) }
+      def executed command, &block
+        context "when '#{command}' is executed" do
+          before { project.execute command }
+
+          instance_eval &block
+        end
+      end
+
+      def result_of stage_proc, &block
+       it {
+         commit, stage_name = instance_eval(&stage_proc)
+         should have_bt_ref stage_name, commit
+       }
 
        describe "the result for stage" do
           define_method(:subject) do
-            stage = instance_eval(&stage_proc)
-            commit = instance_eval(&commit_proc)
-            super().bt_ref(stage, commit)
+            commit, stage_name = instance_eval(&stage_proc)
+            super().bt_ref(stage_name, commit)
           end
 
           instance_eval &block
@@ -92,6 +102,14 @@ module Project
 
     def bt_ref stage, commit
       Ref.find_all(self.repo).detect { |r| r.name == "#{commit.sha}/#{stage}" }
+    end
+
+    def execute command
+      FileUtils.cd repo.working_dir do
+        output = %x{#{command} --debug 2>&1}
+        raise output unless $?.exitstatus.zero?
+        output
+      end
     end
 
     def build

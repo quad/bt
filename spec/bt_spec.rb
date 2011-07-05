@@ -14,8 +14,6 @@ results:
       eos
     end
 
-    before { project.build }
-
     its(:definition) do
       should == <<-EOS
 --- 
@@ -28,8 +26,10 @@ first:
       EOS
     end
 
-    results_for stage { 'first' }, commit { project.head } do
-      it { should have_file_content_in_tree 'new_file', "blah\n" }
+    executed 'bt-go' do
+      result_of stage { [project.head, 'first'] } do
+        it { should have_file_content_in_tree 'new_file', "blah\n" }
+      end
     end
   end
 
@@ -42,23 +42,23 @@ first:
       eos
     end
 
-    before { project.build }
-
-    results_for stage { 'first' }, commit { project.head } do
-      its('commit.message') { should == 'FAIL bt loves you' }
+    executed 'bt-go' do
+      result_of stage { [project.head, 'first'] } do
+        its('commit.message') { should == 'FAIL bt loves you' }
+      end
     end
   end
 
   describe "a repo with a failing bt build" do
     project { |p| p.failing_stage :failing }
 
-    before { project.build }
+    executed 'bt-go --once' do
+      result_of stage { [project.head, 'failing'] } do
+        its('commit.message') { should == "FAIL bt loves you" }
+      end
 
-    results_for stage { 'failing' }, commit { project.head } do
-      its('commit.message') { should == "FAIL bt loves you" }
+      it { should_not be_ready }
     end
-
-    it { should_not be_ready }
   end
 
   describe "a repo with a failing dependant stage" do
@@ -67,13 +67,13 @@ first:
       p.passing_stage 'second', 'needs' => ['first']
     end
 
-    before { project.build }
+    executed 'bt-go --once' do
+      result_of stage { [project.head, 'first'] } do
+        its('commit.message') { should == "FAIL bt loves you" }
+      end
 
-    results_for stage { 'first' }, commit { project.head } do
-      its('commit.message') { should == "FAIL bt loves you" }
+      it { should_not be_ready }
     end
-
-    it { should_not be_ready }
   end
 
   describe "a repo with two dependent stages" do
@@ -111,41 +111,31 @@ second:
       EOS
     end
 
+    let(:first_result) { project.bt_ref('first', project.head).commit }
+    let(:second_result) { project.bt_ref('second', project.head).commit }
+
     it { should be_ready }
 
-    context "with first stage built" do
-      let(:first_result) { project.bt_ref('first', project.head).commit }
-
-      before { project.build }
-
+    executed 'bt-go --once' do
       it { should be_ready }
 
-      results_for stage { 'first' }, commit { project.head } do
+      result_of stage { [project.head, 'first'] } do
         it { should have_file_content_in_tree 'new_file', "blah\n" }
         its('commit.message') { should == "PASS bt loves you" }
       end
 
       it { should have_results :first => first_result }
-   end
+    end
 
-    context "with second stage built" do
-      before { 2.times { project.build } }
-
+    executed 'bt-go' do
       it { should_not be_ready }
 
-      results_for stage { 'second' }, commit { project.head } do
+      result_of stage { [project.head, 'second'] } do
         it { should have_file_content_in_tree 'new_file', "blah\nblah blah\n" }
         its('commit.message') { should == "PASS bt loves you" }
       end
 
-      context "its results" do
-        subject { project }
-
-        let(:first_result) { project.bt_ref('first', project.head).commit }
-        let(:second_result) { project.bt_ref('second', project.head).commit }
-
-        it { should have_results :first => first_result, :second => second_result }
-      end
+      it { should have_results :first => first_result, :second => second_result }
     end
   end
 
