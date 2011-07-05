@@ -1,4 +1,4 @@
-require 'yaml'
+require 'bt/psych'
 
 module BT
   class GeneratedSpecification < Struct.new :file

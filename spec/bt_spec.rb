@@ -1,6 +1,6 @@
 require 'forwardable'
 require 'grit'
-require 'yaml'
+require 'bt/psych'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
@@ -26,11 +26,10 @@ describe 'bt-go' do
 
     its(:definition) do
       should == <<-EOS
---- 
-first: 
+---
+first:
   needs: []
-
-  results: 
+  results:
   - new_file
   run: echo \"blah\" > new_file
       EOS
@@ -123,17 +122,16 @@ run: exit 1
 
     its(:definition) do
       should == <<-EOS
---- 
-first: 
+---
+first:
   needs: []
-
-  results: 
+  results:
   - new_file
   run: echo \"blah\" > new_file
-second: 
-  needs: 
+second:
+  needs:
   - first
-  results: 
+  results:
   - new_file
   run: echo \"blah blah\" >> new_file
       EOS
@@ -218,9 +216,7 @@ y ({
 stage_from_lib:
   run: exit 0
   results: []
-
   needs: []
-
       eos
 
       p.stage_generator :lib_generator, <<-eos
@@ -233,31 +229,24 @@ cat `dirname $0`/lib/stage
 
     its(:definition) do
       should == <<-eos
---- 
-first: 
+---
+first:
   needs: []
-
-  results: 
+  results:
   - new_file
   run: exit 0
-stage: 
+stage:
   run: exit 0
   needs: []
-
   results: []
-
-another: 
+another:
   run: exit 0
   needs: []
-
   results: []
-
-stage_from_lib: 
+stage_from_lib:
   run: exit 0
   results: []
-
   needs: []
-
 eos
     end
   end

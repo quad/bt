@@ -1,5 +1,5 @@
 module BT
-  require 'yaml'
+  require 'bt/psych'
 
   class Stage < Struct.new(:commit, :name, :specification, :needs, :run, :results)
 

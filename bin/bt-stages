@@ -3,7 +3,7 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'bt'
-require 'yaml'
+require 'bt/psych'
 
 opts = Trollop::options do
   banner <<-EOS
