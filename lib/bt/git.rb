@@ -43,7 +43,7 @@ module BT
     # TODO: Mirror is not the right word.
     def self.mirror uri, &block
       Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
-        repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false
+        repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false, :mirror => true
         Mirror.new repo.path, &block
       end
     end
