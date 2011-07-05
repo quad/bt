@@ -1,5 +1,5 @@
 require 'bt'
-require 'yaml'
+require 'bt/yaml'
 require 'support/file_builder'
 
 include BT

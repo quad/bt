@@ -1,5 +1,5 @@
 module BT
-  require 'yaml'
+  require 'bt/yaml'
 
   class Stage < Struct.new(:commit, :name, :specification, :needs, :run, :results)
 
