@@ -1,5 +1,5 @@
 require 'bt'
-require 'yaml'
+require 'bt/yaml'
 
 describe BT::Pipeline do
   context "with a definition with one stage" do
