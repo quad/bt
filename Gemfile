@@ -1,11 +1,4 @@
 source :rubygems
 
-gem "andand"
-gem "trollop"
-gem 'dnssd'
-gem 'uuid'
+gemspec
 
-group :test do
-  gem 'grit'
-  gem 'rspec'
-end
