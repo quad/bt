@@ -18,8 +18,8 @@ module Project
         subject { project }
       end
 
-      def executed command, &block
-        context "when '#{command}' is executed" do
+      def after_executing command, &block
+        context "when '#{command}' has executed" do
           before { project.execute command }
 
           instance_eval &block
