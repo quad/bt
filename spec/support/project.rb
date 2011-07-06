@@ -147,13 +147,25 @@ RSpec::Matchers.define :have_bt_ref do |stage, commit|
   end
 end
 
-RSpec::Matchers.define :have_file_content_in_tree do |name, content|
+RSpec::Matchers.define :have_blob do |name|
   match do |commit|
-    (commit.tree / name).data == content
+    @blob = commit.tree / name
+
+    if @content
+      @blob && @blob.data == @content
+    else
+      @blob
+    end
+  end
+
+  chain :containing do |content|
+    @content = content
   end
 
   failure_message_for_should do |commit|
-    "Expected #{name.inspect} to have content #{content.inspect} but had #{(commit.tree / name).data.inspect}"
+    msg = "Expected #{commit.inspect} to have blob '#{name}'"
+    msg << " containing '#{@content.inspect}' but got '#{@blob.data.inspect}'" if @blob && @content
+    msg
   end
 end
 

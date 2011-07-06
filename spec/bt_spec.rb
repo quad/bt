@@ -30,7 +30,7 @@ first:
 
     executed 'bt-go' do
       result_of stage { [project.head, 'first'] } do
-        it { should have_file_content_in_tree 'new_file', "blah\n" }
+        it { should have_blob('new_file').containing("blah\n") }
       end
     end
   end
@@ -121,7 +121,7 @@ second:
       it { should be_ready }
 
       result_of stage { [project.head, 'first'] } do
-        it { should have_file_content_in_tree 'new_file', "blah\n" }
+        it { should have_blob('new_file').containing("blah\n") }
         its('commit.message') { should == "PASS bt loves you" }
       end
 
@@ -132,7 +132,7 @@ second:
       it { should_not be_ready }
 
       result_of stage { [project.head, 'second'] } do
-        it { should have_file_content_in_tree 'new_file', "blah\nblah blah\n" }
+        it { should have_blob('new_file').containing("blah\nblah blah\n") }
         its('commit.message') { should == "PASS bt loves you" }
       end
 
