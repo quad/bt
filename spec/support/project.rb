@@ -141,6 +141,10 @@ RSpec::Matchers.define :have_bt_ref do |stage, commit|
   match do |project|
     project.bt_ref(stage, commit)
   end
+
+  failure_message_for_should do |commit|
+    "Expected commit #{commit.inspect} to have stage \"#{stage}\""
+  end
 end
 
 RSpec::Matchers.define :have_file_content_in_tree do |name, content|
