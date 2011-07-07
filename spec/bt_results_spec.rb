@@ -16,13 +16,22 @@ describe 'bt-results' do
     - new_file
     eos
 
-    p.stage :second, <<-eos
+  p.stage :second, <<-eos
   run: echo \"blah blah\" >> new_file
   needs:
     - first
   results:
     - new_file
     eos
+  end
+
+  result_of_executing 'bt-results --format json' do
+    should == {
+      project.head.sha => {
+        'first' => {},
+        'second' => {}
+      }
+    }.to_json
   end
 
   result_of_executing 'bt-results' do
@@ -34,7 +43,7 @@ second:
     eos
   end
 
-  executed 'bt-go --once' do
+  after_executing 'bt-go --once' do
     result_of_executing 'bt-results --format json' do
       should == {
         project.head.sha => {
@@ -57,7 +66,7 @@ second:
     end
   end
 
-  executed 'bt-go' do
+  after_executing 'bt-go' do
     result_of_executing 'bt-results' do
       should == <<-eos
 Results (#{project.head.sha}):
@@ -65,6 +74,21 @@ Results (#{project.head.sha}):
 first: PASS bt loves you (#{first_result.sha})
 second: PASS bt loves you (#{second_result.sha})
       eos
+    end
+
+    result_of_executing 'bt-results --format json' do
+      should == {
+        project.head.sha => {
+          'first' => {
+            'message' => 'PASS bt loves you',
+            'sha' => first_result.sha
+          },
+          'second' => {
+            'message' => 'PASS bt loves you',
+            'sha' => second_result.sha
+          }
+        }
+      }.to_json
     end
   end
 end
