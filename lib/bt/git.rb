@@ -54,8 +54,8 @@ module BT
 
     def working_tree commit = 'HEAD', &block
       Dir.mktmpdir do |tmp_dir|
-        # TODO: Grit::Git::GitTimeout on long checkouts?
-        git.clone({:recursive => true}, path, tmp_dir)
+        # TODO: Find a better way of handling timeouts/long operations
+        git.clone({:recursive => true, :timeout => false}, path, tmp_dir)
         WorkingTree.new tmp_dir do |tree|
           tree.branch_of commit
           block.call tree
