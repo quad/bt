@@ -148,6 +148,10 @@ RSpec::Matchers.define :have_bt_ref do |stage, commit|
 end
 
 RSpec::Matchers.define :have_blob do |name|
+  chain :containing do |content|
+    @content = content
+  end
+
   match do |commit|
     @blob = commit.tree / name
 
@@ -156,10 +160,6 @@ RSpec::Matchers.define :have_blob do |name|
     else
       @blob
     end
-  end
-
-  chain :containing do |content|
-    @content = content
   end
 
   failure_message_for_should do |commit|
