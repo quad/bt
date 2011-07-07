@@ -17,8 +17,8 @@ results:
       eos
     end
 
-    its(:definition) do
-      should == <<-EOS
+    result_of_executing 'bt-stages' do
+       should == <<-EOS
 ---
 first:
   needs: []

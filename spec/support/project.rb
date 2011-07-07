@@ -26,6 +26,14 @@ module Project
         end
       end
 
+      def result_of_executing command, &block
+        describe "the result of executing #{command}" do
+          subject { project.execute command }
+
+          it &block
+        end
+      end
+
       def result_of stage_proc, &block
        it {
          commit, stage_name = instance_eval(&stage_proc)
@@ -104,12 +112,13 @@ module Project
       Ref.find_all(self.repo).detect { |r| r.name == "#{commit.sha}/#{stage}" }
     end
 
-    def execute command
+    def execute command, debug = false
+      output = nil
       FileUtils.cd repo.working_dir do
-        output = %x{#{command} --debug 2>&1}
+        output = %x{#{command} #{debug ? '--debug' : ''} 2>&1}
         raise output unless $?.exitstatus.zero?
-        output
       end
+      output
     end
 
     def build
