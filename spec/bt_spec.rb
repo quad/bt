@@ -95,7 +95,7 @@ first:
       eos
     end
 
-    its(:definition) do
+    result_of_executing 'bt-stages' do
       should == <<-EOS
 ---
 first:
@@ -173,7 +173,7 @@ cat `dirname $0`/lib/stage
     end
 
 
-    its(:definition) do
+    result_of_executing 'bt-stages' do
       should == <<-eos
 ---
 first:
