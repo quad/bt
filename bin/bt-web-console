@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '../lib'))
+
+require 'sinatra/base'
+require 'thin'
+require 'bt'
+require 'trollop'
+
+opts = Trollop::options do
+  banner <<-eos
+  Starts a web console with information about repository's builds.
+
+Usage: bt-web-console [REPOSITORY]
+  eos
+end
+
+ENV['REPOSITORY'] = ARGV.shift or raise 'Specify a repository uri'
+
+module BT
+  class WebConsole < Sinatra::Base
+    get '/' do
+      r = Repository.new(ENV['REPOSITORY'])
+      r.commits(:max_results => 10).map(&:sha).to_s
+    end
+  end
+end
+
+Thin::Server.start('0.0.0.0', 4567) { run BT::WebConsole }

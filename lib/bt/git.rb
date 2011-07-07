@@ -74,6 +74,15 @@ module BT
       Commit.new self, @repo.commit(name)
     end
 
+    def commits options = {}
+      actual_options = {:start => @repo.head.name, :skip => 0, :max_count => 10}.merge(options)
+
+      grit_commits = @repo.commits(actual_options[:start], actual_options[:max_count], actual_options[:skip])
+      grit_commits.map do |c|
+        Commit.new self, c
+      end
+    end
+
     def result commit, name
       ref = refs.detect { |r| r.name == "#{commit.sha}/#{name}" }
       Commit.new self, ref.commit if ref
