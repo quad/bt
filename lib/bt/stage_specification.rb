@@ -1,4 +1,5 @@
 require 'bt/yaml'
+require 'forwardable'
 
 module BT
   class GeneratedSpecification < Struct.new :file
@@ -15,6 +16,10 @@ module BT
   end
 
   class StageSpecification < Struct.new :files
+    extend Forwardable
+
+    def_delegators :to_hash, :to_json, :to_yaml
+
     def to_hash
       files.map do |f|
         File.executable?(f) ? GeneratedSpecification.new(f) : StaticSpecification.new(f)

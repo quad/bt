@@ -4,6 +4,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'bt'
 require 'bt/yaml'
+require 'json'
 
 opts = Trollop::options do
   banner <<-EOS
@@ -14,6 +15,7 @@ Usage: bt-stages [OPTS...] [DIRECTORY]
 
   opt :commit, 'Commit to generate stage definition from', :default => 'HEAD'
   opt :debug, 'Show debug output'
+  opt :format, 'Output format [json|yaml]', :default => 'yaml'
 end
 
 Grit.debug = true if opts[:debug]
@@ -24,6 +26,14 @@ BT::Repository.mirror(directory) do |r|
   r.working_tree opts[:commit] do |t|
     stage_files = Dir[File.join(Dir.pwd, 'stages', '*')].reject { |f| File.directory?(f) }
 
-    y BT::StageSpecification.new(stage_files).to_hash
+    format = opts[:format]
+
+    spec = BT::StageSpecification.new(stage_files)
+    method = "to_#{format}".to_sym
+    if spec.respond_to?(method)
+      $stdout.print spec.send method
+    else
+      $stderr.puts "Invalid format '#{format}'. Valid formats [json|yaml]" and exit
+    end
   end
 end

@@ -2,6 +2,7 @@ require 'support/project'
 require 'forwardable'
 require 'grit'
 require 'bt/yaml'
+require 'json'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
@@ -29,6 +30,15 @@ first:
     end
 
     after_executing 'bt-go' do
+      result_of_executing 'bt-stages --format json' do
+        should == {'first' => {
+          'needs' => [],
+          'results' => ['new_file'],
+          'run' => 'echo "blah" > new_file'
+        }
+        }.to_json
+      end
+
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }
       end
