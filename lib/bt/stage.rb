@@ -54,6 +54,11 @@ module BT
       [$?.exitstatus, result]
     end
 
+    def to_hash
+      result_hash = result ? result.to_hash : {}
+      {name => result_hash}
+    end
+
     private
 
     def merge!(hash)

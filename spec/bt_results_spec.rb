@@ -1,4 +1,5 @@
 require 'support/project'
+require 'json'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
 
@@ -34,6 +35,18 @@ second:
   end
 
   executed 'bt-go --once' do
+    result_of_executing 'bt-results --format json' do
+      should == {
+        project.head.sha => {
+          'first' => {
+            'message' => 'PASS bt loves you',
+            'sha' => first_result.sha
+          },
+          'second' => {}
+        }
+      }.to_json
+    end
+
     result_of_executing 'bt-results' do
       should == <<-eos
 Results (#{project.head.sha}):

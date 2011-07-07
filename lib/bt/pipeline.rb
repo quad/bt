@@ -20,6 +20,10 @@ module BT
       stages.select(&:ready?)
     end
 
+    def to_hash
+      {commit.sha => stages.inject({}) {|result, stage| result.merge(stage.to_hash)}}
+    end
+
     private
 
     def next_satisfied! stage_definition, known_stages
