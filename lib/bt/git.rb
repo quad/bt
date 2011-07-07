@@ -10,10 +10,6 @@ module BT
 
     def_delegators :commit, :tree, :sha, :message
 
-    def pipeline
-      Pipeline.new self
-    end
-
     def result name
       repository.result(self, name)
     end
