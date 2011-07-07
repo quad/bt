@@ -13,7 +13,10 @@ Usage: bt-stages [OPTS...] [DIRECTORY]
   EOS
 
   opt :commit, 'Commit to generate stage definition from', :default => 'HEAD'
+  opt :debug, 'Show debug output'
 end
+
+Grit.debug = true if opts[:debug]
 
 directory = ARGV.shift || Dir.pwd
 
