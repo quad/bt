@@ -18,27 +18,7 @@ results:
       eos
     end
 
-    result_of_executing 'bt-stages' do
-       should == <<-EOS
----
-first:
-  needs: []
-  results:
-  - new_file
-  run: echo \"blah\" > new_file
-      EOS
-    end
-
     after_executing 'bt-go' do
-      result_of_executing 'bt-stages --format json' do
-        should == {'first' => {
-          'needs' => [],
-          'results' => ['new_file'],
-          'run' => 'echo "blah" > new_file'
-        }
-        }.to_json
-      end
-
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }
       end
@@ -105,23 +85,6 @@ first:
       eos
     end
 
-    result_of_executing 'bt-stages' do
-      should == <<-EOS
----
-first:
-  needs: []
-  results:
-  - new_file
-  run: echo \"blah\" > new_file
-second:
-  needs:
-  - first
-  results:
-  - new_file
-  run: echo \"blah blah\" >> new_file
-      EOS
-    end
-
     let(:first_result) { project.bt_ref('first', project.head).commit }
     let(:second_result) { project.bt_ref('second', project.head).commit }
 
@@ -147,63 +110,6 @@ second:
       end
 
       it { should have_results :first => first_result, :second => second_result }
-    end
-  end
-
-  describe "a repo with a stage generator" do
-    project do |p|
-      p.stage :first, <<-eos
-  run: exit 0
-  results:
-    - new_file
-      eos
-
-      p.stage_generator :generator, <<-eos
-#!/usr/bin/env ruby
-require 'yaml'
-y ({
-   'stage' => {'run' => 'exit 0', 'needs' => [], 'results' => []},
-   'another' => {'run' => 'exit 0', 'needs' => [], 'results' => []}
-})
-      eos
-
-      p.file 'stages/lib/', 'stage', <<-eos
----
-stage_from_lib:
-  run: exit 0
-  results: []
-  needs: []
-      eos
-
-      p.stage_generator :lib_generator, <<-eos
-#!/bin/sh -e
-
-cat `dirname $0`/lib/stage
-      eos
-    end
-
-
-    result_of_executing 'bt-stages' do
-      should == <<-eos
----
-first:
-  needs: []
-  results:
-  - new_file
-  run: exit 0
-stage:
-  run: exit 0
-  needs: []
-  results: []
-another:
-  run: exit 0
-  needs: []
-  results: []
-stage_from_lib:
-  run: exit 0
-  results: []
-  needs: []
-eos
     end
   end
 end
