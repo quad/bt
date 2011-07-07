@@ -1,6 +1,7 @@
 require 'sinatra/base'
 require 'bt'
 require 'haml'
+require 'bt/web_console/models'
 
 module BT
   module WebConsole
@@ -12,9 +13,9 @@ module BT
         haml :index, :locals => {:commits => r.commits(:max_results => 10) }
       end
 
-      get '/commits/:sha' do
-        result = `bt-results --commit #{params[:sha]}`
-        stages = `bt-stages --commit #{params[:sha]}`
+      get '/commits/:label' do
+        result = Result.all(params[:label])
+        stages = Stage.all(params[:label])
         haml :commit, :locals => {:result => result, :stages => stages}
       end
     end
