@@ -18,8 +18,8 @@ module Project
         subject { project }
       end
 
-      def executed command, &block
-        context "when '#{command}' is executed" do
+      def after_executing command, &block
+        context "when '#{command}' has executed" do
           before { project.execute command }
 
           instance_eval &block
@@ -141,25 +141,31 @@ RSpec::Matchers.define :have_bt_ref do |stage, commit|
   match do |project|
     project.bt_ref(stage, commit)
   end
-end
 
-RSpec::Matchers.define :have_file_content do |name, content|
-  match do |tree|
-    (tree / name).data == content
-  end
-
-  failure_message_for_should do |tree|
-    "Expected #{name.inspect} to have content #{content.inspect} but had #{(tree / name).data.inspect}"
+  failure_message_for_should do |commit|
+    "Expected commit #{commit.inspect} to have stage \"#{stage}\""
   end
 end
 
-RSpec::Matchers.define :have_file_content_in_tree do |name, content|
+RSpec::Matchers.define :have_blob do |name|
+  chain :containing do |content|
+    @content = content
+  end
+
   match do |commit|
-    (commit.tree / name).data == content
+    @blob = commit.tree / name
+
+    if @content
+      @blob && @blob.data == @content
+    else
+      @blob
+    end
   end
 
   failure_message_for_should do |commit|
-    "Expected #{name.inspect} to have content #{content.inspect} but had #{(commit.tree / name).data.inspect}"
+    msg = "Expected #{commit.inspect} to have blob '#{name}'"
+    msg << " containing '#{@content.inspect}' but got '#{@blob.data.inspect}'" if @blob && @content
+    msg
   end
 end
 
