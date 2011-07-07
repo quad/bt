@@ -1,0 +1,5 @@
+#commits
+  %ul
+    -commits.each do |commit|
+      %li
+        %a{:href => "/commits/#{commit.sha}"}= commit.sha
