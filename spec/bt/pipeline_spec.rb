@@ -2,7 +2,7 @@ require 'bt'
 require 'bt/yaml'
 
 describe BT::Pipeline do
-  context "with a definition with one stage" do
+  context "with a definition comprising one stage" do
     let(:commit) { mock(:commit) }
     let(:definition) do
       <<-EOS
@@ -21,7 +21,7 @@ first:
     its(:stages) { should include_only BT::Stage.new(commit, 'first', {'run' => 'exit 0', 'results' => [], 'needs' => []}) }
   end
 
-  context "with a definition with two stages" do
+  context "with a definition comprising two stages" do
     let(:commit) { mock(:commit) }
     let(:definition) do
       <<-EOS
@@ -49,7 +49,7 @@ second:
     end
   end
 
-  context "with a definition with two out of order stages" do
+  context "with a definition comprising two out of order stages" do
     let(:commit) { mock(:commit) }
     let(:definition) do
       <<-EOS
@@ -77,7 +77,7 @@ first:
     end
   end 
 
-  context "with a definition with three out of order stages" do
+  context "with a definition comprising three out of order stages" do
     let(:commit) { mock(:commit) }
     let(:definition) do
       <<-EOS

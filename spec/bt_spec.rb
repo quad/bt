@@ -28,9 +28,9 @@ first:
       EOS
     end
 
-    executed 'bt-go' do
+    after_executing 'bt-go' do
       result_of stage { [project.head, 'first'] } do
-        it { should have_file_content_in_tree 'new_file', "blah\n" }
+        it { should have_blob('new_file').containing("blah\n") }
       end
     end
   end
@@ -44,7 +44,7 @@ first:
       eos
     end
 
-    executed 'bt-go' do
+    after_executing 'bt-go' do
       result_of stage { [project.head, 'first'] } do
         its('commit.message') { should == 'FAIL bt loves you' }
       end
@@ -54,7 +54,7 @@ first:
   describe "a repo with a failing bt build" do
     project { |p| p.failing_stage :failing }
 
-    executed 'bt-go --once' do
+    after_executing 'bt-go --once' do
       result_of stage { [project.head, 'failing'] } do
         its('commit.message') { should == "FAIL bt loves you" }
       end
@@ -69,7 +69,7 @@ first:
       p.passing_stage 'second', 'needs' => ['first']
     end
 
-    executed 'bt-go --once' do
+    after_executing 'bt-go --once' do
       result_of stage { [project.head, 'first'] } do
         its('commit.message') { should == "FAIL bt loves you" }
       end
@@ -117,22 +117,22 @@ second:
 
     it { should be_ready }
 
-    executed 'bt-go --once' do
+    after_executing 'bt-go --once' do
       it { should be_ready }
 
       result_of stage { [project.head, 'first'] } do
-        it { should have_file_content_in_tree 'new_file', "blah\n" }
+        it { should have_blob('new_file').containing("blah\n") }
         its('commit.message') { should == "PASS bt loves you" }
       end
 
       it { should have_results :first => first_result }
     end
 
-    executed 'bt-go' do
+    after_executing 'bt-go' do
       it { should_not be_ready }
 
       result_of stage { [project.head, 'second'] } do
-        it { should have_file_content_in_tree 'new_file', "blah\nblah blah\n" }
+        it { should have_blob('new_file').containing("blah\nblah blah\n") }
         its('commit.message') { should == "PASS bt loves you" }
       end
 
