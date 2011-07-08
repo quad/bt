@@ -1,5 +1,10 @@
-#commits
-  %ul
-    -commits.each do |commit|
-      %li
-        %a{:href => "/commits/#{commit.sha}"}= commit.sha
+%ul
+  %li
+    %span HEAD
+    %a{:href => '/commits/HEAD/results'} Results
+    %a{:href => '/commits/HEAD/stages'} Stages
+  -commits.each do |commit|
+    %li
+      %span= commit.sha
+      %a{:href => "/commits/#{commit.sha}/results"} Results
+      %a{:href => "/commits/#{commit.sha}/stages"} Stages

@@ -14,7 +14,7 @@ module BT
       end
 
       get '/commits/:label/results' do
-         responder do |r|
+        responder do |r|
            r.text { Result.as_human(params[:label]) }
            r.json { Result.as_json(params[:label]) }
         end
