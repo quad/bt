@@ -13,10 +13,24 @@ module BT
         haml :index, :locals => {:commits => r.commits(:max_results => 10) }
       end
 
-      get '/commits/:label' do
-        result = Result.all(params[:label])
-        stages = Stage.all(params[:label])
-        haml :commit, :locals => {:result => result, :stages => stages}
+      get '/commits/:label/results' do
+        if request.accept.include? 'application/json'
+          content_type :json
+          Result.as_json(params[:label])
+        else
+          content_type :text
+          Result.as_human(params[:label])
+        end
+      end
+
+      get '/commits/:label/stages' do
+        if request.accept.include? 'application/json'
+          content_type :json
+          Stage.as_json(params[:label])
+        else
+          content_type :text
+          Stage.as_human(params[:label])
+        end
       end
     end
   end
