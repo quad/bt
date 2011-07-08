@@ -14,23 +14,48 @@ module BT
       end
 
       get '/commits/:label/results' do
-        if request.accept.include? 'application/json'
-          content_type :json
-          Result.as_json(params[:label])
-        else
-          content_type :text
-          Result.as_human(params[:label])
+         responder do |r|
+           r.text { Result.as_human(params[:label]) }
+           r.json { Result.as_json(params[:label]) }
         end
       end
 
       get '/commits/:label/stages' do
-        if request.accept.include? 'application/json'
-          content_type :json
-          Stage.as_json(params[:label])
-        else
-          content_type :text
-          Stage.as_human(params[:label])
+        responder do |r|
+          r.text { Stage.as_human(params[:label]) }
+          r.json { Stage.as_json(params[:label]) }
         end
+      end
+
+      def responder &block
+        Responder.new self, &block
+      end
+    end
+
+    class Responder
+      def initialize app, &block
+        @app = app
+        @responses = []
+        yield self
+        respond
+      end
+
+      def json &block
+        map_content_types 'application/json', 'application/*', '*/*', &block
+      end
+
+      def text &block
+        map_content_types 'text/plain', 'text/*', '*/*', &block
+      end
+
+      def map_content_types *content_types, &block
+        content_types.each { |content_type| @responses << {:content_type => content_type, :content_proc => block} }
+      end
+
+      def respond
+        response = @responses.detect { |response| @app.request.accept.include? response[:content_type] } 
+        @app.content_type response[:content_type]
+        @app.body response[:content_proc].call
       end
     end
   end
