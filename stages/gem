@@ -1,3 +1,8 @@
-run: bundle install --local && bundle exec rake build
-results:
-  - pkg/*.gem
+#!/usr/bin/env ruby
+
+require 'bt/version'
+require 'yaml'
+
+y 'gem' => {'run' => 'bundle install --local && bundle exec rake build',
+            'results' => ["pkg/build-thing-#{BT::VERSION}.gem"],
+            'needs' => ['spec']}
