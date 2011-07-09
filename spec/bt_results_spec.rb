@@ -102,3 +102,20 @@ second: PASS bt loves you (#{second_result.sha})
     end
   end
 end
+
+describe 'bt-results --history' do
+  include Project::RSpec
+
+  project do |p|
+    p.passing_stage :first
+    p.passing_stage :second
+  end
+
+  after_executing 'bt-go' do
+    result_of_executing 'bt-results --history' do
+      should == <<-EOS
+#{project.head.sha}: PASS
+      EOS
+    end
+  end  
+end

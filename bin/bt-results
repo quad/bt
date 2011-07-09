@@ -16,6 +16,9 @@ Usage:
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to get results for', :default => 'HEAD'
   opt :format, 'Output format [json|text]', :default => 'text'
+  opt :history, 'Show the build history'
+  
+  conflicts :history, :commit
 end
 
 include BT::Cli
@@ -26,21 +29,31 @@ Grit.debug = true if opts[:debug]
 
 BT::Repository.mirror(uri) do |r|
   r.update
-  commit = r.commit(opts[:commit])
+  if opts[:history]
+    `git rev-list HEAD`.split("\n").each do |sha|
+      commit = r.commit(sha)
+      stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
+      
+      puts "#{sha}: #{BT::Pipeline.new(commit, stage_definition).status}"
 
-  stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
-
-  format = opts[:format]
-  pipeline = BT::Pipeline.new commit, stage_definition
-
-  if format == 'text'
-    puts "Results (#{commit.sha}):\n\n"
-
-    pipeline.stages.each do |stage|
-      puts "#{stage.name}: #{stage.result}"
     end
-  elsif format == 'json'
-    $stdout.print(pipeline.to_hash.to_json)
+  else
+    commit = r.commit(opts[:commit])
+
+    stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
+
+    format = opts[:format]
+    pipeline = BT::Pipeline.new commit, stage_definition
+
+    if format == 'text'
+      puts "Results (#{commit.sha}):\n\n"
+
+      pipeline.stages.each do |stage|
+        puts "#{stage.name}: #{stage.result}"
+      end
+    elsif format == 'json'
+      $stdout.print(pipeline.to_hash.to_json)
+    end
   end
 end
 

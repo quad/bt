@@ -132,6 +132,14 @@ first:
 
       it { should have(0).needs }
     end
+
+    context "all stages have passed" do
+      before do
+        commit.stub(:result).and_return(mock(:commit, :message => 'PASS bt loves you'))
+      end
+
+      its(:status) { should == 'PASS' }
+    end
   end
 end
 
