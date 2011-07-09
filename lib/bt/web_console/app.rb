@@ -15,7 +15,7 @@ module BT
       end
 
       get '/commits/:label/results' do
-        result = Result.new params[:label]
+        result = Result.new ENV['REPOSITORY'], params[:label]
         responder do |r|
            r.text { result.as_human }
            r.json { result.as_json }
@@ -23,8 +23,7 @@ module BT
       end
 
       get '/commits/:label/pipeline' do
-        raise BT::WebConsole::BadReference
-        pipeline = Pipeline.new params[:label]
+        pipeline = Pipeline.new ENV['REPOSITORY'], params[:label]
         responder do |r|
           r.text { pipeline.as_human }
           r.json { pipeline.as_json }
