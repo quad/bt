@@ -112,7 +112,7 @@ describe 'bt-results --history' do
   end
 
   after_executing 'bt-go' do
-    result_of_executing 'bt-results --history' do
+    result_of_executing 'bt-results --history HEAD' do
       should == <<-EOS
 #{project.head.sha}: PASS
       EOS

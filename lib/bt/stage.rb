@@ -14,6 +14,10 @@ module BT
       (r = result) && r.message.start_with?('PASS')
     end
 
+    def fail?
+      (r = result) && r.message.start_with?('FAIL')
+    end
+
     def done?
       result
     end

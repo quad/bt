@@ -140,6 +140,21 @@ first:
 
       its(:status) { should == 'PASS' }
     end
+
+    context "second stage failed" do
+      before do
+        commit.stub(:result).and_return(nil)
+        commit.stub(:result).with('second').and_return(mock(:commit, :message => 'FAIL bt loves you'))
+      end
+
+      its(:status) { should == 'FAIL' }
+    end
+
+    context "stages not failed nor all passed" do
+      before { commit.stub(:result).and_return(nil) }
+
+      its(:status) { should == 'UNKNOWN' }
+    end
   end
 end
 
