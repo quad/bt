@@ -155,6 +155,15 @@ first:
 
       its(:status) { should == 'UNKNOWN' }
     end
+
+    context "no stages failed and some passed" do
+      before do
+        commit.stub(:result).and_return(nil)
+        commit.stub(:result).with("first").and_return(mock(:commit, :message => 'PASS bt loves you'))
+      end
+
+      its(:status) { should == 'IN PROGRESS' }
+    end
   end
 end
 

@@ -27,6 +27,7 @@ module BT
     def status
       return 'FAIL' if stages.any?(&:fail?)
       return 'PASS' if stages.all?(&:ok?)
+      return 'IN PROGRESS' if stages.any?(&:ok?)
       'UNKNOWN'
     end
 
