@@ -118,7 +118,7 @@ module Project
     end
 
     def results
-      output = %x{bt-results --debug --uri #{repo.working_dir} 2>&1}
+      output = %x{bt-results --debug #{repo.working_dir} 2>&1}
       raise output unless $?.exitstatus.zero?
       output
     end

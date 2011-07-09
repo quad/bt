@@ -10,18 +10,19 @@ opts = Trollop::options do
 Shows build results for head.
 
 Usage:
-\tbt results
+\tbt results [OPTIONS...] [URI|DIRECTORY]
   EOS
   opt :debug, 'Debugging text scrolls'
-  opt :uri, 'Give the results for a specified URI', :short => :u, :type => :string, :default => Dir.pwd
   opt :commit, 'Commit to get results for', :default => 'HEAD'
 end
 
 include BT::Cli
 
+uri = ARGV.shift || Dir.pwd
+
 Grit.debug = true if opts[:debug]
 
-BT::Repository.mirror(opts[:uri]) do |r|
+BT::Repository.mirror(uri) do |r|
   r.update
   commit = r.commit(opts[:commit])
 
