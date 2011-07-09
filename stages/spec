@@ -1,0 +1,3 @@
+run: bundle install --no-color --local && bundle exec rake
+results:
+  - spec/spec.html
