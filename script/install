@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+rake
+rake build
+
+GEM=$(find pkg | sort | tail -1)
+
+gem install "$GEM"
