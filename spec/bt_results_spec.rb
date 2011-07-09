@@ -113,9 +113,13 @@ describe 'bt-results --history' do
 
   after_executing 'bt-go' do
     result_of_executing 'bt-results --history HEAD' do
-      should == <<-EOS
-#{project.head.sha}: PASS
-      EOS
+      should == "#{project.head.sha}: PASS\n"
     end
-  end  
+  end
+
+  after_executing 'bt-go --once' do
+    result_of_executing 'bt-results --history HEAD' do
+      should == "#{project.head.sha}: IN PROGRESS\n"
+    end
+  end
 end
