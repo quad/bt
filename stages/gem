@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'bt/version'
+require './lib/bt/version'
 require 'yaml'
 
 y 'gem' => {'run' => 'bundle install --no-color --local && bundle exec rake build',
