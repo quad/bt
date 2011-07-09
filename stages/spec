@@ -1,1 +1,3 @@
 run: bundle install --local && bundle exec rake
+results:
+  - spec/spec.html
