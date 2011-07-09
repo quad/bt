@@ -1,0 +1,9 @@
+#!/bin/sh -e
+
+bundle install --local
+rake
+rake build
+
+GEM=$(find pkg -name 'build-thing-*.gem' | sort | tail -1)
+
+gem install "$GEM"
