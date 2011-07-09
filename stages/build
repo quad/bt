@@ -1,3 +1,1 @@
-run: ./build
-results:
-  - new-file
+run: bundle install --local && bundle exec rake

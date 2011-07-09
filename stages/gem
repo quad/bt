@@ -1,0 +1,3 @@
+run: bundle install --local && bundle exec rake build
+results:
+  - pkg/*.gem
