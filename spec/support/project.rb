@@ -132,12 +132,6 @@ module Project
       output
     end
 
-    def definition
-      output = %x{bt-stages #{repo.working_dir}}
-      raise output unless $?.exitstatus.zero?
-      output
-    end
-
     def ready?
       output = %x{bt-ready #{repo.working_dir}}
       raise output unless $?.exitstatus.zero?
