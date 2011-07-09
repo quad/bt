@@ -7,7 +7,8 @@ module BT
   module WebConsole
     class App < Sinatra::Base
       set :views, proc { File.join(File.dirname(__FILE__), 'views') }
-
+      
+      #TODO: Using BT::* models, should probably be using a bt-results variant
       get '/' do
         r = Repository.new(ENV['REPOSITORY'])
         haml :index, :locals => {:commits => r.commits(:max_results => 10) }

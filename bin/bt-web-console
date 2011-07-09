@@ -14,6 +14,7 @@ Usage: bt-web-console [REPOSITORY]
   eos
 end
 
+#TODO: Find a better way of passing the repo into the app
 ENV['REPOSITORY'] = ARGV.shift or raise 'Specify a repository uri'
 
 Thin::Server.start('0.0.0.0', 4567) { run BT::WebConsole::App }
