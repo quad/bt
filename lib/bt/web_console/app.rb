@@ -7,7 +7,7 @@ module BT
   module WebConsole
     class App < Sinatra::Base
       set :views, proc { File.join(File.dirname(__FILE__), 'views') }
-      
+
       #TODO: Using BT::* models, should probably be using a bt-results variant
       get '/' do
         r = Repository.new(ENV['REPOSITORY'])
@@ -15,16 +15,19 @@ module BT
       end
 
       get '/commits/:label/results' do
+        result = Result.new params[:label]
         responder do |r|
-           r.text { Result.as_human(params[:label]) }
-           r.json { Result.as_json(params[:label]) }
+           r.text { result.as_human }
+           r.json { result.as_json }
         end
       end
 
-      get '/commits/:label/stages' do
+      get '/commits/:label/pipeline' do
+        raise BT::WebConsole::BadReference
+        pipeline = Pipeline.new params[:label]
         responder do |r|
-          r.text { Stage.as_human(params[:label]) }
-          r.json { Stage.as_json(params[:label]) }
+          r.text { pipeline.as_human }
+          r.json { pipeline.as_json }
         end
       end
 

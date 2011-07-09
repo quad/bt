@@ -2,9 +2,9 @@
   %li
     %span HEAD
     %a{:href => '/commits/HEAD/results'} Results
-    %a{:href => '/commits/HEAD/stages'} Stages
+    %a{:href => '/commits/HEAD/pipeline'} Pipeline
   -commits.each do |commit|
     %li
       %span= commit.sha
       %a{:href => "/commits/#{commit.sha}/results"} Results
-      %a{:href => "/commits/#{commit.sha}/stages"} Stages
+      %a{:href => "/commits/#{commit.sha}/pipeline"} Pipeline
