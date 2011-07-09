@@ -3,6 +3,8 @@ require 'bt'
 require 'haml'
 require 'bt/web_console/models'
 
+ENV['REPOSITORY'] ||= Dir.pwd
+
 module BT
   module WebConsole
     class App < Sinatra::Base

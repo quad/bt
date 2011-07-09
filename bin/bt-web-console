@@ -1,20 +1,3 @@
-#!/usr/bin/env ruby
+#!/bin/sh -e
 
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '../lib'))
-
-require 'thin'
-require 'trollop'
-require 'bt/web_console/app'
-
-opts = Trollop::options do
-  banner <<-eos
-  Starts a web console with information about repository's builds.
-
-Usage: bt-web-console [REPOSITORY]
-  eos
-end
-
-#TODO: Find a better way of passing the repo into the app
-ENV['REPOSITORY'] = ARGV.shift or raise 'Specify a repository uri'
-
-Thin::Server.start('0.0.0.0', 4567) { run BT::WebConsole::App }
+thin -R $(dirname $0)/../lib/bt/web_console/config.ru $@
