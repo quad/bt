@@ -8,6 +8,11 @@ module BT
     class App < Sinatra::Base
       set :views, proc { File.join(File.dirname(__FILE__), 'views') }
 
+      configure :production do
+        set :raise_errors, false
+        set :show_exceptions, false
+      end
+
       #TODO: Using BT::* models, should probably be using a bt-results variant
       get '/' do
         r = Repository.new(ENV['REPOSITORY'])
@@ -28,6 +33,10 @@ module BT
           r.text { pipeline.as_human }
           r.json { pipeline.as_json }
         end
+      end
+
+      error BT::WebConsole::BadReference do
+        404
       end
 
       def responder &block
