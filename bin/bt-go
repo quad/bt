@@ -12,7 +12,7 @@ opts = Trollop::options do
 Builds ready stages until there aren't any.
 
 Usage:
-\tbt go
+\tbt-go
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :once, 'Build only the next ready stage'
