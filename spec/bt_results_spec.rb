@@ -103,7 +103,7 @@ second: PASS bt loves you (#{second_result.sha})
   end
 end
 
-describe 'bt-results --history' do
+describe 'bt-results --commits' do
   include Project::RSpec
 
   project do |p|
@@ -112,13 +112,13 @@ describe 'bt-results --history' do
   end
 
   after_executing 'bt-go' do
-    result_of_executing 'bt-results --history HEAD' do
+    result_of_executing 'bt-results --commits HEAD' do
       should == "#{project.head.sha}: PASS\n"
     end
   end
 
   after_executing 'bt-go --once' do
-    result_of_executing 'bt-results --history HEAD' do
+    result_of_executing 'bt-results --commits HEAD' do
       should == "#{project.head.sha}: IN PROGRESS\n"
     end
   end

@@ -16,9 +16,9 @@ Usage:
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to get results for', :default => 'HEAD'
   opt :format, 'Output format [json|text]', :default => 'text'
-  opt :history, 'Show the build history', :type => :string
+  opt :commits, 'Show the build history', :type => :string
   
-  conflicts :history, :commit
+  conflicts :commits, :commit
 end
 
 include BT::Cli
@@ -29,8 +29,8 @@ Grit.debug = true if opts[:debug]
 
 BT::Repository.mirror(uri) do |r|
   r.update
-  if opts[:history]
-    `git rev-list #{opts[:history]}`.split("\n").each do |sha|
+  if opts[:commits]
+    `git rev-list #{opts[:commits]}`.split("\n").each do |sha|
       commit = r.commit(sha)
       stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
       
