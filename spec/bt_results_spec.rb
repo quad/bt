@@ -26,12 +26,12 @@ describe 'bt-results' do
   end
 
   result_of_executing 'bt-results --format json' do
-    should == {
+    should == [{
       project.head.sha => {
         'first' => {},
         'second' => {}
       }
-    }.to_json
+    }].to_json
   end
 
   result_of_executing 'bt-results' do
@@ -55,7 +55,7 @@ second:
 
   after_executing 'bt-go --once' do
     result_of_executing 'bt-results --format json' do
-      should == {
+      should == [{
         project.head.sha => {
           'first' => {
             'message' => 'PASS bt loves you',
@@ -63,7 +63,7 @@ second:
           },
           'second' => {}
         }
-      }.to_json
+      }].to_json
     end
 
     result_of_executing 'bt-results' do
@@ -87,7 +87,7 @@ second: PASS bt loves you (#{second_result.sha})
     end
 
     result_of_executing 'bt-results --format json' do
-      should == {
+      should == [{
         project.head.sha => {
           'first' => {
             'message' => 'PASS bt loves you',
@@ -98,12 +98,12 @@ second: PASS bt loves you (#{second_result.sha})
             'sha' => second_result.sha
           }
         }
-      }.to_json
+      }].to_json
     end
   end
 end
 
-describe 'bt-results --commits' do
+describe 'bt-results' do
   include Project::RSpec
 
   project do |p|
@@ -112,14 +112,14 @@ describe 'bt-results --commits' do
   end
 
   after_executing 'bt-go' do
-    result_of_executing 'bt-results --commits HEAD' do
-      should == "#{project.head.sha}: PASS\n"
+    result_of_executing 'bt-results --format short' do
+      should == "#{project.head.sha}: PASS"
     end
   end
 
   after_executing 'bt-go --once' do
-    result_of_executing 'bt-results --commits HEAD' do
-      should == "#{project.head.sha}: IN PROGRESS\n"
+    result_of_executing 'bt-results --format short' do
+      should == "#{project.head.sha}: IN PROGRESS"
     end
   end
 end

@@ -14,11 +14,9 @@ Usage:
 \tbt-results [OPTIONS...] [URI|DIRECTORY]
   EOS
   opt :debug, 'Debugging text scrolls'
-  opt :commit, 'Commit to get results for', :default => 'HEAD'
   opt :format, 'Output format [json|text]', :default => 'text'
-  opt :commits, 'Show the build history', :type => :string
-  
-  conflicts :commits, :commit
+  opt :commit, 'Show the build history', :default => 'HEAD'
+  opt :max_count, 'Max number of results', :default => 1
 end
 
 include BT::Cli
@@ -27,33 +25,31 @@ uri = ARGV.shift || Dir.pwd
 
 Grit.debug = true if opts[:debug]
 
+FORMATS = {
+  'text' => proc do |pipelines|
+    pipelines.map do |p|
+    stage_list = p.stages.map do |stage|
+      "#{stage.name}: #{stage.result}"
+    end.join("\n")
+    <<-EOS
+Results (#{p.commit.sha}):
+
+#{stage_list}
+EOS
+    end.join("\n")
+  end,
+  'json' => proc { |pipelines| pipelines.map(&:to_hash).to_json },
+  'short' => proc { |pipelines| pipelines.map { |p| "#{p.commit.sha}: #{p.status}" }.join("\n") }
+}
+
 BT::Repository.mirror(uri) do |r|
   r.update
-  if opts[:commits]
-    `git rev-list #{opts[:commits]}`.split("\n").each do |sha|
-      commit = r.commit(sha)
-      stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
-      
-      puts "#{sha}: #{BT::Pipeline.new(commit, stage_definition).status}"
 
-    end
-  else
-    commit = r.commit(opts[:commit])
-
+  pipelines = r.commits(:start => opts[:commit], :max_count => opts[:max_count]).map do |commit|
     stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
-
-    format = opts[:format]
-    pipeline = BT::Pipeline.new commit, stage_definition
-
-    if format == 'text'
-      puts "Results (#{commit.sha}):\n\n"
-
-      pipeline.stages.each do |stage|
-        puts "#{stage.name}: #{stage.result}"
-      end
-    elsif format == 'json'
-      $stdout.print(pipeline.to_hash.to_json)
-    end
+    BT::Pipeline.new(commit, stage_definition)
   end
+
+  $stdout.print(FORMATS[opts[:format]].call pipelines)
 end
 
