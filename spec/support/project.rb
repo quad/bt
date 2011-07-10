@@ -121,6 +121,14 @@ module Project
       output
     end
 
+    def execute_async command
+      io = nil
+      FileUtils.cd repo.working_dir do
+        io = IO.popen(command)
+      end
+      io
+    end
+
     def build
       output = %x{bt-go --once --debug --directory #{repo.working_dir} 2>&1}
       raise output unless $?.exitstatus.zero?
