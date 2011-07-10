@@ -4,6 +4,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'bt'
 require 'bt/yaml'
+require 'json'
 
 opts = Trollop::options do
   banner <<-EOS
@@ -14,6 +15,7 @@ Usage:
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to get results for', :default => 'HEAD'
+  opt :format, 'Output format [json|human]', :default => 'human'
 end
 
 include BT::Cli
@@ -28,12 +30,17 @@ BT::Repository.mirror(uri) do |r|
 
   stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
 
+  format = opts[:format]
   pipeline = BT::Pipeline.new commit, stage_definition
 
-  puts "Results (#{commit.sha}):\n\n"
+  if format == 'human'
+    puts "Results (#{commit.sha}):\n\n"
 
-  pipeline.stages.each do |stage|
-    puts "#{stage.name}: #{stage.result}"
+    pipeline.stages.each do |stage|
+      puts "#{stage.name}: #{stage.result}"
+    end
+  elsif format == 'json'
+    $stdout.print(pipeline.to_hash.to_json)
   end
 end
 

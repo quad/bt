@@ -34,6 +34,10 @@ module BT
       repository.fetch working_tree, self, name
     end
 
+    def to_hash
+      {'message' => message, 'sha' => sha}
+    end
+
     def to_s
       "#{message.lines.first.chomp} (#{sha})"
     end
