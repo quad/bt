@@ -11,7 +11,7 @@ opts = Trollop::options do
 Watch a repository for stages to build
 
 Usage:
-\tbt watch [repository]
+\tbt-watch [repository]
   EOS
   opt :debug, "Debugging text scrolls"
 end

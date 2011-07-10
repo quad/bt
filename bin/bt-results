@@ -10,7 +10,7 @@ opts = Trollop::options do
 Shows build results for head.
 
 Usage:
-\tbt results [OPTIONS...] [URI|DIRECTORY]
+\tbt-results [OPTIONS...] [URI|DIRECTORY]
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to get results for', :default => 'HEAD'
