@@ -43,6 +43,16 @@ second:
     eos
   end
 
+  result_of_executing 'bt-results --format text' do
+    should == <<-eos
+Results (#{project.head.sha}):
+
+first: 
+second: 
+    eos
+  end
+
+
   after_executing 'bt-go --once' do
     result_of_executing 'bt-results --format json' do
       should == {
