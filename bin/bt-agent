@@ -96,7 +96,7 @@ Local network build leadership (plumbing)
 You probably don't want to be running this directly.
 
 Usage:
-\tbt agent <build>
+\tbt-agent <build>
   EOS
 end
 
