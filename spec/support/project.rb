@@ -1,6 +1,7 @@
 require 'yaml'
 require 'grit'
 require 'forwardable'
+require 'open3'
 
 module Project
   module RSpec
@@ -122,11 +123,11 @@ module Project
     end
 
     def execute_async command
-      io = nil
+      ios = []
       FileUtils.cd repo.working_dir do
-        io = IO.popen(command)
+        ios = Open3.popen3(command)
       end
-      io
+      ios
     end
 
     def build

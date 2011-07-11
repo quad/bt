@@ -11,17 +11,20 @@ describe 'bt-watch' do
 
   def self.after_executing_async command, &block
     context "after executing #{command} asynchronously" do
-      let(:io) { subject.execute_async command }
+      let(:watch_thread) do
+        stdin, stdout, stderr, thread = subject.execute_async(command)
+        thread
+      end
 
-      before { io }
+      before { watch_thread }
 
       instance_eval &block
 
-      after { Process.kill('HUP', io.pid) }
+      after { Process.kill('HUP', watch_thread.pid) }
     end
   end
 
-  after_executing_async 'bt-watch 2>&1 > /dev/null' do
+  after_executing_async 'bt-watch' do
     it { should have_bt_ref('first', project.head).within(:timeout => 20, :interval => 1) }
   end
 end
