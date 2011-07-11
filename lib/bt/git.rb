@@ -48,6 +48,8 @@ module BT
     def self.mirror uri, &block
       Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
         repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false
+        repo.git.remote({}, 'rm', 'origin') if repo.git.remote.split("\n").include?('origin')
+        repo.git.remote({}, 'add', 'origin', uri)
         Mirror.new repo.path, &block
       end
     end
