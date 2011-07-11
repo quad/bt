@@ -27,6 +27,21 @@ module Project
         end
       end
 
+      def after_executing_async command, &block
+        context "after executing #{command} asynchronously" do
+          let(:watch_thread) do
+            stdin, stdout, stderr, thread = subject.execute_async(command)
+            thread
+          end
+
+          before { watch_thread }
+
+          instance_eval &block
+
+          after { Process.kill('HUP', watch_thread.pid) }
+        end
+      end
+
       def result_of_executing command, &block
         describe "the result of executing #{command}" do
           subject { project.execute command }
@@ -186,6 +201,46 @@ RSpec::Matchers.define :have_results do |results|
     result_string = project.results
     results.all? do |stage, result_commit|
       result_string.index /^#{stage.to_s}: (PASS|FAIL) bt loves you \(#{result_commit.sha}\)$/
+    end
+  end
+end
+
+class RSpec::Matchers::Matcher
+  def within options = {}
+    WithinMatcher.new self, options
+  end
+end
+
+module RSpec
+  module Matchers
+    class WithinMatcher
+      def initialize matcher, options
+        @matcher = matcher
+        @options = {:interval => 0.1, :timeout => 1}.merge(options)
+      end
+
+      def matches? actual
+        Timeout.timeout(@options[:timeout]) do
+          until @matcher.matches?(actual)
+            sleep @options[:interval]
+          end
+        end
+        true
+      rescue Timeout::Error
+        false
+      end
+
+      def description
+        "#{@matcher.description} within #{@options[:timeout]} seconds"
+      end
+
+      def failure_message_for_should
+        @matcher.failure_message_for_should
+      end
+
+      def failure_message_for_should_not
+        @matcher.failure_message_for_should_not
+      end
     end
   end
 end
