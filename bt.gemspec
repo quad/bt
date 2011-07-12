@@ -25,4 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency('grit')
   s.add_dependency('trollop')
   s.add_dependency('uuid')
+  s.add_dependency('sinatra')
+  s.add_dependency('thin')
+  s.add_dependency('haml')
 end
