@@ -4,7 +4,7 @@
 
   * A terminal
 
-I bet you got one laying around your desktop somewhere.
+I bet you got one laying around your desktop.
 
 ## Preparation
 
@@ -20,12 +20,12 @@ I bet you got one laying around your desktop somewhere.
         r1 $ git add Rakefile
         r1 $ git commit -m "A wild project appears"
 
- 1. OK, time to try out `bt`!
+ 1. Time to try out `bt`!
 
         r1 $ bt-go
         r1 $
 
-    Uh huh. "Nothing of Importance Happened Today." About that.
+    Hmm.
 
  1. We need to teach `bt` how to do what it does so well:
 
@@ -38,13 +38,11 @@ I bet you got one laying around your desktop somewhere.
         r1 $ git add stages/build
         r1 $ git commit -m "Added a 'build' stage"
 
- 1. OK, time to try out `bt`!
+ 1. OK, for reals, time to try out `bt`!
 
         r1 $ bt-go
         echo HI > output.txt
         build: PASS bt loves you (b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730)
-
-    (Your SHA will be different.)
 
     That. That was `bt` building your newest commit.
 
@@ -55,6 +53,7 @@ I bet you got one laying around your desktop somewhere.
 
         build: PASS bt loves you (b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730)
 
+    Yes, those are real `git` SHAs.
 
         r1 $ git show b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730
         commit b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730
@@ -73,5 +72,5 @@ I bet you got one laying around your desktop somewhere.
         @@ -0,0 +1 @@
         +HI
 
-    Yes, the `output.txt` has been committed to your respository.
-    Yes, the console output from `make` is in your commit message.
+    Yes, `output.txt` has been committed to your respository.
+    Yes, the console output from `rake` is in your commit message.
