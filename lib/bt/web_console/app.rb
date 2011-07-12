@@ -18,7 +18,8 @@ module BT
       #TODO: Using BT::* models, should probably be using a bt-results variant
       get '/' do
         r = Repository.new(ENV['REPOSITORY'])
-        haml :index, :locals => {:commits => r.commits(:max_results => 10) }
+        max_count = (request.params['max_count'] || 10).to_i
+        haml :index, :locals => {:commits => r.commits(:max_count => max_count) }
       end
 
       get '/commits/:label/results' do
