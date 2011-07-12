@@ -4,12 +4,19 @@ module BT
     end
 
     class Reference < Struct.new :name
-      def valid?
-        name =~ /[a-f0-9]{40}/ or name == 'HEAD'
+      def initialize name
+        super(name)
+        raise BadReference unless valid?
       end
 
       def to_s
         name
+      end
+
+      private
+
+      def valid?
+        name =~ /[a-f0-9]{40}/ or name == 'HEAD'
       end
     end
   end

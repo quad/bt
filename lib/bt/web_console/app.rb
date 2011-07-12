@@ -24,7 +24,7 @@ module BT
       get '/commits/:label/results' do
         result = Result.new ENV['REPOSITORY'], params[:label]
         responder do |r|
-           r.text { result.as_human }
+           r.text { result.as_text }
            r.json { result.as_json }
         end
       end
@@ -32,7 +32,7 @@ module BT
       get '/commits/:label/pipeline' do
         pipeline = Pipeline.new ENV['REPOSITORY'], params[:label]
         responder do |r|
-          r.text { pipeline.as_human }
+          r.text { pipeline.as_yaml }
           r.json { pipeline.as_json }
         end
       end
