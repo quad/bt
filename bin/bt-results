@@ -15,7 +15,7 @@ Usage:
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to get results for', :default => 'HEAD'
-  opt :format, 'Output format [json|human]', :default => 'human'
+  opt :format, 'Output format [json|text]', :default => 'text'
 end
 
 include BT::Cli
@@ -33,7 +33,7 @@ BT::Repository.mirror(uri) do |r|
   format = opts[:format]
   pipeline = BT::Pipeline.new commit, stage_definition
 
-  if format == 'human'
+  if format == 'text'
     puts "Results (#{commit.sha}):\n\n"
 
     pipeline.stages.each do |stage|
