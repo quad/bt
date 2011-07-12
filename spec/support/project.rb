@@ -203,9 +203,9 @@ RSpec::Matchers.define :have_results_for do |commit|
 
     result_stages = actual_results[commit.sha]
 
-    interesting_stages = @include_stages or result_stages.keys
+    interesting_stages = @include_stages || result_stages.keys
 
-    interesting_stages and interesting_stages.all? do |stage_name|
+    interesting_stages && interesting_stages.all? do |stage_name|
       stage = result_stages[stage_name]
       !stage.empty?
     end
