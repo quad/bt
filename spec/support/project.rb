@@ -39,7 +39,7 @@ module Project
 
           instance_eval &block
 
-          after { Process.kill('HUP', watch_thread.pid) }
+          after { Process.kill('TERM', watch_thread.pid) }
         end
       end
 
