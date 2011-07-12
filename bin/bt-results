@@ -6,25 +6,6 @@ require 'bt'
 require 'bt/yaml'
 require 'json'
 
-opts = Trollop::options do
-  banner <<-EOS
-Shows build results for head.
-
-Usage:
-\tbt-results [OPTIONS...] [URI|DIRECTORY]
-  EOS
-  opt :debug, 'Debugging text scrolls'
-  opt :format, 'Output format [json|text|short]', :default => 'text'
-  opt :commit, 'Start history from this commit', :default => 'HEAD'
-  opt :max_count, 'Max number of results from specified commit', :default => 1
-end
-
-include BT::Cli
-
-uri = ARGV.shift || Dir.pwd
-
-Grit.debug = true if opts[:debug]
-
 FORMATS = {
   'text' => proc do |pipelines|
     pipelines.map do |p|
@@ -45,6 +26,25 @@ Results (#{p.commit.sha}):
   'short' => proc { |pipelines| pipelines.map { |p| "#{p.commit.sha}: #{p.status}\n" }.join }
 }
 
+opts = Trollop::options do
+  banner <<-EOS
+Shows build results for head.
+
+Usage:
+\tbt-results [OPTIONS...] [URI|DIRECTORY]
+  EOS
+  opt :debug, 'Debugging text scrolls'
+  opt :format, "Output format [#{FORMATS.keys.join("|")}]", :default => 'text'
+  opt :commit, 'Start history from this commit', :default => 'HEAD'
+  opt :max_count, 'Max number of results from specified commit', :default => 1
+end
+
+include BT::Cli
+
+uri = ARGV.shift || Dir.pwd
+
+Grit.debug = true if opts[:debug]
+
 BT::Repository.mirror(uri) do |r|
   r.update
 
@@ -52,7 +52,11 @@ BT::Repository.mirror(uri) do |r|
     stage_definition = YAML.load(`#{find_command :stages} --commit #{commit.sha} "#{r.path}"`)
     BT::Pipeline.new(commit, stage_definition)
   end
-
-  $stdout.print(FORMATS[opts[:format]].call pipelines)
+  
+  if format = FORMATS[opts[:format]]
+    $stdout.print(format.call pipelines)
+  else
+    puts "'#{opts[:format]}' is not an acceptable format. Acceptable formats are [#{FORMATS.keys.join("|")}]"
+  end
 end
 
