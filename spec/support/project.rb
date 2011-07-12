@@ -209,6 +209,10 @@ class RSpec::Matchers::Matcher
   def within options = {}
     WithinMatcher.new self, options
   end
+
+  def eventually
+    within :timeout => 20
+  end
 end
 
 module RSpec

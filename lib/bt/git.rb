@@ -20,7 +20,7 @@ module BT
 
     def workspace depends, &block
       repository.working_tree do |t|
-        depends.each { |n| t.checkout_result n}
+        depends.each { |n| t.checkout_result n }
 
         name, message, files = yield
 
@@ -48,10 +48,28 @@ module BT
     def self.mirror uri, &block
       Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
         repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false
-        repo.git.remote({}, 'rm', 'origin') if repo.git.remote.split("\n").include?('origin')
-        repo.git.remote({}, 'add', 'origin', uri)
-        Mirror.new repo.path, &block
+        Mirror.new repo.path do |m|
+          m.remote? 'origin' and m.remote_rm 'origin'
+          m.remote_add 'origin', uri
+          block.call m
+        end
       end
+    end
+
+    def remote? name
+      remotes.include? name
+    end
+
+    def remotes
+      @repo.git.remote.split("\n")
+    end
+
+    def remote_rm name
+      @repo.git.remote({:raise => true}, 'rm', name)
+    end
+
+    def remote_add name, uri
+      @repo.git.remote({}, 'add', name, uri)
     end
 
     def working_tree commit = 'HEAD', &block

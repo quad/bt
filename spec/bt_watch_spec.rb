@@ -10,7 +10,7 @@ describe 'bt-watch' do
   end
 
   after_executing_async 'bt-watch' do
-    it { should have_bt_ref('first', project.head).within(:timeout => 20, :interval => 1) }
+    it { should have_bt_ref('first', project.head).eventually }
   end
 end
 
