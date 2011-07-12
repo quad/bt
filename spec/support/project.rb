@@ -1,6 +1,8 @@
 require 'yaml'
 require 'grit'
 require 'forwardable'
+require 'open3'
+require 'json'
 
 module Project
   module RSpec
@@ -23,6 +25,21 @@ module Project
           before { project.execute command }
 
           instance_eval &block
+        end
+      end
+
+      def after_executing_async command, &block
+        context "after executing #{command} asynchronously" do
+          let(:watch_thread) do
+            stdin, stdout, stderr, thread = subject.execute_async(command)
+            thread
+          end
+
+          before { watch_thread }
+
+          instance_eval &block
+
+          after { Process.kill('TERM', watch_thread.pid) }
         end
       end
 
@@ -121,6 +138,14 @@ module Project
       output
     end
 
+    def execute_async command
+      ios = []
+      FileUtils.cd repo.working_dir do
+        ios = Open3.popen3(command)
+      end
+      ios
+    end
+
     def build
       output = %x{bt-go --once --debug --directory #{repo.working_dir} 2>&1}
       raise output unless $?.exitstatus.zero?
@@ -172,11 +197,65 @@ RSpec::Matchers.define :have_blob do |name|
   end
 end
 
-RSpec::Matchers.define :have_results do |results|
+RSpec::Matchers.define :have_results_for do |commit|
   match do |project|
-    result_string = project.results
-    results.all? do |stage, result_commit|
-      result_string.index /^#{stage.to_s}: (PASS|FAIL) bt loves you \(#{result_commit.sha}\)$/
+    actual_results = JSON.parse(project.execute("bt-results --format json --commit #{commit.sha} \"#{project.repo.path}\""))
+
+    result_stages = actual_results[commit.sha]
+
+    interesting_stages = @include_stages || result_stages.keys
+
+    interesting_stages && interesting_stages.all? do |stage_name|
+      stage = result_stages[stage_name]
+      !stage.empty?
+    end
+  end
+
+  chain :including_stages do |*stages|
+    @include_stages = stages
+  end
+end
+
+class RSpec::Matchers::Matcher
+  def within options = {}
+    WithinMatcher.new self, options
+  end
+
+  def eventually
+    within :timeout => 20, :interval => 1
+  end
+end
+
+module RSpec
+  module Matchers
+    class WithinMatcher
+      def initialize matcher, options
+        @matcher = matcher
+        @options = {:interval => 0.1, :timeout => 1}.merge(options)
+      end
+
+      def matches? actual
+        Timeout.timeout(@options[:timeout]) do
+          until @matcher.matches?(actual)
+            sleep @options[:interval]
+          end
+        end
+        true
+      rescue Timeout::Error
+        false
+      end
+
+      def description
+        "#{@matcher.description} within #{@options[:timeout]} seconds"
+      end
+
+      def failure_message_for_should
+        "#{@matcher.failure_message_for_should} within #{@options[:timeout]} seconds"
+      end
+
+      def failure_message_for_should_not
+        "#{@matcher.failure_message_for_should_not} within #{@options[:timeout]} seconds"
+      end
     end
   end
 end
