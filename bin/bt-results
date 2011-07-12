@@ -14,9 +14,9 @@ Usage:
 \tbt-results [OPTIONS...] [URI|DIRECTORY]
   EOS
   opt :debug, 'Debugging text scrolls'
-  opt :format, 'Output format [json|text]', :default => 'text'
-  opt :commit, 'Show the build history', :default => 'HEAD'
-  opt :max_count, 'Max number of results', :default => 1
+  opt :format, 'Output format [json|text|short]', :default => 'text'
+  opt :commit, 'Start history from this commit', :default => 'HEAD'
+  opt :max_count, 'Max number of results from specified commit', :default => 1
 end
 
 include BT::Cli
