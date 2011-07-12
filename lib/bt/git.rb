@@ -69,7 +69,7 @@ module BT
     end
 
     def remote_add name, uri
-      @repo.git.remote({}, 'add', name, uri)
+      @repo.git.remote({:raise => true}, 'add', name, uri)
     end
 
     def working_tree commit = 'HEAD', &block
