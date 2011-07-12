@@ -2,66 +2,76 @@
 
 ## Ingredients
 
-  * Two terminals in the same directory
+  * A terminal
+
+I bet you got one laying around your desktop somewhere.
 
 ## Preparation
 
-In your first terminal:
+ 1. We need something to build, to build:
 
-    $ mkdir r1 && cd r1
-    r1 $ git init
-    r1 $ echo -e 'output.txt:\n\techo HI > $@' > Makefile
-    r1 $ git add Makefile
-    r1 $ git commit -m "A wild project appears"
+        $ mkdir r1 && cd r1
+        r1 $ git init
+        r1 $ cat > Rakefile <<EOF
+        task :default do
+          sh 'echo HI > output.txt'
+        end
+        EOF
+        r1 $ git add Rakefile
+        r1 $ git commit -m "A wild project appears"
 
-Then in your second terminal:
+ 1. OK, time to try out `bt`!
 
-    $ bt-watch r1
+        r1 $ bt-go
+        r1 $
 
-Nothing happens. We can fix that!
+    Uh huh. "Nothing of Importance Happened Today." About that.
 
-Back in your first terminal:
+ 1. We need to teach `bt` how to do what it does so well:
 
-    r1 $ mkdir stages
-    r1 $ cat > stages/build <<EOF
-    run: make
-    results:
-      - output.txt
-    EOF
-    r1 $ git add stages/build
-    r1 $ git commit -m "Added a 'build' stage"
+        r1 $ mkdir stages
+        r1 $ cat > stages/build <<EOF
+        run: rake --verbose
+        results:
+          - output.txt
+        EOF
+        r1 $ git add stages/build
+        r1 $ git commit -m "Added a 'build' stage"
 
-Quick, check your second terminal again!
+ 1. OK, time to try out `bt`!
 
-    echo HI > output.txt
-    build: PASS bt loves you (ff3f89712c8f8883d7aa75d23baa18de175e20d4) DONE
-
-(Your SHA will be different.)
-
-That was `bt-watch` building your newest commit.
-
-Back to the first terminal:
-
-    r1 $ bt-results
-    Results (a2844028d9fa126f09ac55de2b51d05bde4abc46):
-
-    build: PASS bt loves you (ff3f89712c8f8883d7aa75d23baa18de175e20d4)
-    r1 $ git show ff3f89712c8f8883d7aa75d23baa18de175e20d4
-    commit ff3f89712c8f8883d7aa75d23baa18de175e20d4
-    Author: Build Thing <build@thing.invalid>
-    Date:   Tue Jul 12 16:17:18 2011 +1000
-
-        PASS bt loves you
-        
+        r1 $ bt-go
         echo HI > output.txt
+        build: PASS bt loves you (b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730)
 
-    diff --git a/output.txt b/output.txt
-    new file mode 100644
-    index 0000000..c1e3b52
-    --- /dev/null
-    +++ b/output.txt
-    @@ -0,0 +1 @@
-    +HI
+    (Your SHA will be different.)
 
-Yes, the `output.txt` has been committed to your respository.
-Yes, the console output from `make` is in your commit message.
+    That. That was `bt` building your newest commit.
+
+ 1. **BEHOLD** the results of your works!
+
+        r1 $ bt-results
+        Results (6de54d390d3ab8a88f8ffc2294b5022682b124e0):
+
+        build: PASS bt loves you (b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730)
+
+
+        r1 $ git show b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730
+        commit b9f7850f9799d6c1ab8e7774b7a10f5e84ba2730
+        Author: Build Thing <build@thing.invalid>
+        Date:   Tue Jul 12 16:52:34 2011 +1000
+
+            PASS bt loves you
+
+            echo HI > output.txt
+
+        diff --git a/output.txt b/output.txt
+        new file mode 100644
+        index 0000000..c1e3b52
+        --- /dev/null
+        +++ b/output.txt
+        @@ -0,0 +1 @@
+        +HI
+
+    Yes, the `output.txt` has been committed to your respository.
+    Yes, the console output from `make` is in your commit message.
