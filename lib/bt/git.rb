@@ -44,28 +44,8 @@ module BT
     def self.mirror uri, &block
       Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
         repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false
-        Mirror.new repo.path do |m|
-          m.has_remote? 'origin' and m.remote_rm 'origin'
-          m.remote_add 'origin', uri
-          block.call m
-        end
+        Mirror.new repo.path, &block
       end
-    end
-
-    def has_remote? name
-      remotes.include? name
-    end
-
-    def remotes
-      @repo.git.remote.split("\n")
-    end
-
-    def remote_rm name
-      @repo.git.remote({:raise => true}, 'rm', name)
-    end
-
-    def remote_add name, uri
-      @repo.git.remote({:raise => true}, 'add', name, uri)
     end
 
     def working_tree commit = 'HEAD', &block
