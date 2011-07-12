@@ -113,13 +113,13 @@ describe 'bt-results' do
 
   after_executing 'bt-go' do
     result_of_executing 'bt-results --format short' do
-      should == "#{project.head.sha}: PASS"
+      should == "#{project.head.sha}: PASS\n"
     end
   end
 
   after_executing 'bt-go --once' do
     result_of_executing 'bt-results --format short' do
-      should == "#{project.head.sha}: IN PROGRESS"
+      should == "#{project.head.sha}: IN PROGRESS\n"
     end
   end
 end

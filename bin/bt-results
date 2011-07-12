@@ -39,7 +39,7 @@ EOS
     end.join("\n")
   end,
   'json' => proc { |pipelines| pipelines.map(&:to_hash).to_json },
-  'short' => proc { |pipelines| pipelines.map { |p| "#{p.commit.sha}: #{p.status}" }.join("\n") }
+  'short' => proc { |pipelines| pipelines.map { |p| "#{p.commit.sha}: #{p.status}\n" }.join }
 }
 
 BT::Repository.mirror(uri) do |r|
