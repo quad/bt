@@ -8,17 +8,16 @@ require 'json'
 
 FORMATS = {
   'text' => proc do |pipelines|
-    pipelines.map do |p|
-      stage_list = p.stages.map do |stage|
-        "#{stage.name}: #{stage.result}"
-      end.join("\n")
+    "".tap do |result|
+      pipelines.map do |p|
+        stage_list = p.stages.map do |stage|
+          "#{stage.name}: #{stage.result}\n"
+        end
 
-      <<-EOS
-Results (#{p.commit.sha}):
-
-#{stage_list}
-      EOS
-    end.join("\n")
+        result << "Results (#{p.commit.sha}):\n\n"
+        result << stage_list.join
+      end
+    end
   end,
 
   'json' => proc { |pipelines| pipelines.map(&:to_hash).to_json },
