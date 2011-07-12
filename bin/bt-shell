@@ -6,7 +6,7 @@ require 'bt'
 
 opts = Trollop::options do
   banner <<-EOS
-Opens a shell in a isolated build environment.
+Opens a shell in an isolated build environment.
 
 Usage:
 \tbt-shell
