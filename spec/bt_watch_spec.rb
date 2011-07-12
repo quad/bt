@@ -10,7 +10,7 @@ describe 'bt-watch' do
   end
 
   after_executing_async 'bt-watch' do
-    it { should have_bt_ref('first', project.head).eventually }
+    it { should have_results_for(project.head, 'first').eventually }
   end
 end
 

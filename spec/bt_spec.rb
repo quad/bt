@@ -98,7 +98,7 @@ results:
         its('commit.message') { should == "PASS bt loves you" }
       end
 
-      it { should have_results :first => first_result }
+      it { should have_results_for project.head, 'first' }
     end
 
     after_executing 'bt-go' do
@@ -109,7 +109,7 @@ results:
         its('commit.message') { should == "PASS bt loves you" }
       end
 
-      it { should have_results :first => first_result, :second => second_result }
+      it { should have_results_for project.head, 'first', 'second' }
     end
   end
 end

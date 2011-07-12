@@ -196,11 +196,15 @@ RSpec::Matchers.define :have_blob do |name|
   end
 end
 
-RSpec::Matchers.define :have_results do |results|
+RSpec::Matchers.define :have_results_for do |commit, *stages|
   match do |project|
-    result_string = project.results
-    results.all? do |stage, result_commit|
-      result_string.index /^#{stage.to_s}: (PASS|FAIL) bt loves you \(#{result_commit.sha}\)$/
+    actual_results = JSON.parse(project.execute("bt-results --format json --commit #{commit.sha} \"#{project.repo.path}\""))
+
+    result_stages = actual_results[commit.sha]
+
+    result_stages and stages.all? do |stage_name|
+      stage = result_stages[stage_name]
+      !stage.empty?
     end
   end
 end
@@ -211,7 +215,7 @@ class RSpec::Matchers::Matcher
   end
 
   def eventually
-    within :timeout => 20
+    within :timeout => 20, :interval => 1
   end
 end
 
@@ -239,11 +243,11 @@ module RSpec
       end
 
       def failure_message_for_should
-        @matcher.failure_message_for_should
+        "#{@matcher.failure_message_for_should} within #{@options[:timeout]} seconds"
       end
 
       def failure_message_for_should_not
-        @matcher.failure_message_for_should_not
+        "#{@matcher.failure_message_for_should_not} within #{@options[:timeout]} seconds"
       end
     end
   end
