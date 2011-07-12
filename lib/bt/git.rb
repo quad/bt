@@ -10,10 +10,6 @@ module BT
 
     def_delegators :commit, :tree, :sha, :message
 
-    def pipeline
-      Pipeline.new self
-    end
-
     def result name
       repository.result(self, name)
     end
@@ -74,8 +70,8 @@ module BT
 
     def working_tree commit = 'HEAD', &block
       Dir.mktmpdir do |tmp_dir|
-        # TODO: Grit::Git::GitTimeout on long checkouts?
-        git.clone({:recursive => true}, path, tmp_dir)
+        # TODO: Find a better way of handling timeouts/long operations
+        git.clone({:recursive => true, :timeout => false}, path, tmp_dir)
         WorkingTree.new tmp_dir do |tree|
           tree.branch_of commit
           block.call tree
@@ -96,6 +92,15 @@ module BT
 
     def commit name
       Commit.new self, @repo.commit(name)
+    end
+
+    def commits options = {}
+      actual_options = {:start => @repo.head.name, :skip => 0, :max_count => 10}.merge(options)
+
+      grit_commits = @repo.commits(actual_options[:start], actual_options[:max_count], actual_options[:skip])
+      grit_commits.map do |c|
+        Commit.new self, c
+      end
     end
 
     def result commit, name
