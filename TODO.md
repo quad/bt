@@ -1,9 +1,4 @@
-= Bugs
-
-* Should commit results as merge commit of their needs
-* Watching an invalid repo crashes hard.
-
-= Wishlist
+# Wishlist
 
 * Should support stage tags
   * Automatic tags
@@ -20,12 +15,12 @@
 * Should coordinate builds 
 
 
-== bt-go
+## bt-go
 
 * Should build from a working directory
   * From a stash?
 
-== bt-watch
+## bt-watch
 
 * Should delegate to bt-agent, bt-go, bt-next-commit
 * Should integrate with Jenkins for build reporting
@@ -42,7 +37,7 @@
   * Detect repos via bonjour
 
 
-== bt-agent
+## bt-agent
 
 * Should coordinate builds over WANs and the Internet
   * DNSSD only works on local networks, is buggy, and not Internet friendly.
