@@ -2,6 +2,7 @@ require 'yaml'
 require 'grit'
 require 'forwardable'
 require 'open3'
+require 'json'
 
 module Project
   module RSpec
@@ -196,16 +197,22 @@ RSpec::Matchers.define :have_blob do |name|
   end
 end
 
-RSpec::Matchers.define :have_results_for do |commit, *stages|
+RSpec::Matchers.define :have_results_for do |commit|
   match do |project|
     actual_results = JSON.parse(project.execute("bt-results --format json --commit #{commit.sha} \"#{project.repo.path}\""))
 
     result_stages = actual_results[commit.sha]
 
-    result_stages and stages.all? do |stage_name|
+    interesting_stages = @include_stages or result_stages.keys
+
+    interesting_stages and interesting_stages.all? do |stage_name|
       stage = result_stages[stage_name]
       !stage.empty?
     end
+  end
+
+  chain :including_stages do |*stages|
+    @include_stages = stages
   end
 end
 

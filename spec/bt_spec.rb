@@ -98,7 +98,7 @@ results:
         its('commit.message') { should == "PASS bt loves you" }
       end
 
-      it { should have_results_for project.head, 'first' }
+      it { should have_results_for(project.head).including_stages('first') }
     end
 
     after_executing 'bt-go' do
@@ -109,7 +109,7 @@ results:
         its('commit.message') { should == "PASS bt loves you" }
       end
 
-      it { should have_results_for project.head, 'first', 'second' }
+      it { should have_results_for(project.head).including_stages('first', 'second') }
     end
   end
 end
