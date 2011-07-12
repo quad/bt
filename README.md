@@ -5,6 +5,7 @@ What `git` is to version control, `bt` is to continuous integration.
 ## Requirements
 
 * Ruby 1.9
+* Git 1.7
 * LibYAML
 
 ## HUH?
