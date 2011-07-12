@@ -28,17 +28,20 @@ Grit.debug = true if opts[:debug]
 FORMATS = {
   'text' => proc do |pipelines|
     pipelines.map do |p|
-    stage_list = p.stages.map do |stage|
-      "#{stage.name}: #{stage.result}"
-    end.join("\n")
-    <<-EOS
+      stage_list = p.stages.map do |stage|
+        "#{stage.name}: #{stage.result}"
+      end.join("\n")
+
+      <<-EOS
 Results (#{p.commit.sha}):
 
 #{stage_list}
-EOS
+      EOS
     end.join("\n")
   end,
+
   'json' => proc { |pipelines| pipelines.map(&:to_hash).to_json },
+
   'short' => proc { |pipelines| pipelines.map { |p| "#{p.commit.sha}: #{p.status}\n" }.join }
 }
 
