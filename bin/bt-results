@@ -38,6 +38,8 @@ Usage:
   opt :max_count, 'Max number of results from specified commit', :default => 1
 end
 
+Trollop::die :format, "must be one of [#{FORMATS.keys.join("|")}]" unless FORMATS.keys.include?(opts[:format])
+
 include BT::Cli
 
 uri = ARGV.shift || Dir.pwd
@@ -52,10 +54,6 @@ BT::Repository.mirror(uri) do |r|
     BT::Pipeline.new(commit, stage_definition)
   end
   
-  if format = FORMATS[opts[:format]]
-    $stdout.print(format.call pipelines)
-  else
-    puts "'#{opts[:format]}' is not an acceptable format. Acceptable formats are [#{FORMATS.keys.join("|")}]"
-  end
+  $stdout.print(FORMATS[opts[:format]].call pipelines)
 end
 
