@@ -119,7 +119,7 @@ describe 'bt-results' do
 
   after_executing 'bt-go --once' do
     result_of_executing 'bt-results --format short' do
-      should == "#{project.head.sha}: IN PROGRESS\n"
+      should == "#{project.head.sha}: INCOMPLETE\n"
     end
   end
 end

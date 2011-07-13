@@ -162,7 +162,7 @@ first:
         commit.stub(:result).with("first").and_return(mock(:commit, :message => 'PASS bt loves you'))
       end
 
-      its(:status) { should == 'IN PROGRESS' }
+      its(:status) { should == 'INCOMPLETE' }
     end
   end
 end
