@@ -94,16 +94,6 @@ module BT
       git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{commit.sha}/#{name}")
     end
 
-    def commits options = {}
-      actual_options = {:start => @repo.head.name, :skip => 0, :max_count => 10}.merge(options)
-      
-      grit_commits = @repo.commits(actual_options[:start], actual_options[:max_count], actual_options[:skip])
-      
-      grit_commits.map do |c|
-        Commit.new self, c
-      end
-    end
-
     private
 
     # Temporary: fix Grit or go home.
