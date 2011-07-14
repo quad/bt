@@ -30,11 +30,9 @@ module Project
 
       def after_executing_async command, &block
         context "after executing #{command} asynchronously" do
-          let(:pid) do
+          let!(:pid) do
             subject.execute_async(command)
           end
-
-          before { pid }
 
           instance_eval &block
 
@@ -147,7 +145,7 @@ module Project
     def execute_async command
       pid = nil
       FileUtils.cd repo.working_dir do
-        pid = Kernel.spawn(command, :pgroup => true)
+        pid = Kernel.spawn(command, :pgroup => true, :err => :out, :out => '/dev/null')
       end
       pid
     end
