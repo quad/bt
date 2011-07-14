@@ -222,6 +222,10 @@ RSpec::Matchers.define :have_results_for do |commit|
   chain :including_stages do |*stages|
     @include_stages = stages
   end
+
+  failure_message_for_should do |project|
+    "expected project to have results for #{commit.sha}"
+  end
 end
 
 class RSpec::Matchers::Matcher
