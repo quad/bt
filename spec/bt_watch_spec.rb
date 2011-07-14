@@ -9,19 +9,30 @@ describe 'bt-watch' do
     p.passing_stage 'first'
   end
 
-  after_executing_async 'bt-watch --debug 2>&1 > /tmp/out.txt' do
+  after_executing_async 'bt-watch' do
     it { should have_results_for(project.head).including_stages('first').eventually }
 
-#    there should be a result for the first commit
-#  when i commit new code
-#    there should be a result for the second commit
+    context "when polling for changes and a change is commited" do
+      def self.precondition &block
+        before do
+          begin
+            Timeout.timeout(20) do
+              until instance_eval &block
+                sleep 1
+              end
+            end
 
-    context "when a change is committed" do
-      before { subject.commit_change }
-      
-      it do
-        should have_results_for(project.head).including_stages('first').within(:timeout => 60, :interval => 5)
+          rescue TimeoutError
+            raise "Precondition not met"
+          end
+        end
       end
+
+      precondition { project.bt_ref('first', project.head) }
+
+      before { project.commit_change }
+
+      it { should have_results_for(project.head).including_stages('first').eventually }
     end
   end
 end
