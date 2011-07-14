@@ -113,9 +113,8 @@ module BT
 
     class Mirror < Repository
       def update
-        # TODO: Make a behavior test to show "+" means the remote repository is
-        # the eternal source of truth.
-        git.fetch({:raise => true}, 'origin', "+#{Ref.prefix}/*:#{Ref.prefix}/*")
+        fetch_results
+        fetch_candidates
       end
 
       def push
@@ -132,6 +131,19 @@ module BT
           false
         end
       end
+
+      private
+
+      def fetch_results
+        # TODO: Make a behavior test to show "+" means the remote repository is
+        # the eternal source of truth.
+        git.fetch({:raise => true, :timeout => false}, 'origin', "+#{Ref.prefix}/*:#{Ref.prefix}/*")
+      end
+
+      def fetch_candidates
+        git.fetch({:raise => true, :timeout => false}, 'origin', "+refs/heads/*:refs/heads/*")
+      end
+
     end
 
     class WorkingTree < Repository
