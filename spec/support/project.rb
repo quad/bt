@@ -1,7 +1,6 @@
 require 'yaml'
 require 'grit'
 require 'forwardable'
-require 'open3'
 require 'json'
 require 'uuid'
 
@@ -31,16 +30,15 @@ module Project
 
       def after_executing_async command, &block
         context "after executing #{command} asynchronously" do
-          let(:watch_thread) do
-            stdin, stdout, stderr, thread = subject.execute_async(command)
-            thread
+          let(:pid) do
+            subject.execute_async(command)
           end
 
-          before { watch_thread }
+          before { pid }
 
           instance_eval &block
 
-          after { Process.kill('TERM', watch_thread.pid) }
+          after { Process.kill('TERM', -Process.getpgid(pid)) }
         end
       end
 
@@ -147,11 +145,11 @@ module Project
     end
 
     def execute_async command
-      ios = []
+      pid = nil
       FileUtils.cd repo.working_dir do
-        ios = Open3.popen3(command)
+        pid = Kernel.spawn(command, :pgroup => true)
       end
-      ios
+      pid
     end
 
     def build
