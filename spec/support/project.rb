@@ -3,6 +3,7 @@ require 'grit'
 require 'forwardable'
 require 'open3'
 require 'json'
+require 'uuid'
 
 module Project
   module RSpec
@@ -15,7 +16,7 @@ module Project
       alias :commit :proc
 
       def project &block
-        let!(:project) { Model.at(Dir.mktmpdir, &block) }
+        let!(:project) { Model.at(Dir.mktmpdir('bt-test-project'), &block) }
 
         subject { project }
       end
@@ -92,8 +93,15 @@ module Project
 
     def initialize dir, &block
       @repo = Grit::Repo.init(dir)
+      @repo.git.config({}, 'core.worktree', @repo.working_dir)
       yield self
       @repo.commit_all("Initial commit")
+    end
+
+    def commit_change
+      uuid = UUID.new.generate
+      file '.', 'CHANGE', uuid
+      @repo.commit_all "Committed #{uuid}"
     end
 
     def file directory, name, content, mode = 0444
