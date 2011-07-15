@@ -13,6 +13,7 @@ Usage:
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to open the shell in', :default => 'HEAD'
+  opt :bare, 'No working tree'
 end
 
 Grit.debug = true if opts[:debug]
@@ -20,7 +21,11 @@ Grit.debug = true if opts[:debug]
 directory = ARGV.shift || Dir.pwd
 
 BT::Repository.mirror(directory) do |r|
-  r.working_tree opts[:commit] do |t|
+  if opts[:bare]
     system 'sh'
+  else
+    r.working_tree opts[:commit] do |t|
+      system 'sh'
+    end
   end
 end
