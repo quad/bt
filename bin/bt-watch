@@ -3,25 +3,50 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'bt/em_cli'
+require 'trollop'
+
+opts = Trollop::options do
+  banner <<-EOS
+Watch a repository for stages to build
+
+Usage:
+\tbt-watch [repository]
+  EOS
+  opt :debug, "Debugging text scrolls"
+end
+
+repository = ARGV.shift || Dir.pwd
 
 EM.run {
-  ready = Ready.new do |commit, stage|
+  ready = Ready.new(repository) do |commit, stage|
     agent = Agent.new "#{commit}/#{stage}"
-    go = Go.new commit, stage
+    go = Go.new repository, commit, stage
 
-    agent.leading { puts "#{commit}/#{stage}: START" }
-    agent.leading { go.build }
+    agent.leading do
+      puts "#{commit}/#{stage}: START"
+      go.build
+    end
 
-    agent.stopped { puts "#{commit}/#{stage}: AGENT STOP" }
-    agent.stopped { go.stop }
-    agent.stopped { ready.next }
+    agent.stopped do
+      puts "#{commit}/#{stage}: AGENT STOP"
+      go.stop
+      ready.next
+    end
 
     go.line { |line| puts line }
-    go.done { puts "#{commit}/#{stage}: DONE" }
-    go.done { agent.stop }
+
+    go.done do
+      puts "#{commit}/#{stage}: DONE"
+      agent.stop
+    end
   end
-  
-  ready.none { EM.stop }
+
+  ready.none do
+    puts "No Readies, waiting for (2) seconds"
+    EM.add_timer(2, proc { ready.next })
+  end
+
+  Signal.trap('INT') { puts "STOPPING"; EM.stop }
 
   ready.next
 }

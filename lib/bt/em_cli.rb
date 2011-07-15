@@ -1,17 +1,18 @@
 require 'eventmachine'
 
 class Ready
- def initialize &callback
+  def initialize repository, &callback
     @callback = callback
     @readies = []
-    @none = EM::DefaultDeferrable.new
+    @nones = []
+    @repository = repository
   end
 
   def next
     callback = @callback
     refresh do |readies|
       if readies.empty?
-        @none.succeed
+        @nones.each { |n| n.call }
       else
         next_ready = readies.shuffle.shift
         @callback.call next_ready[:commit], next_ready[:stage]
@@ -20,11 +21,11 @@ class Ready
   end
 
   def none &block
-    @none.callback &block
+    @nones << block
   end
 
   def refresh &callback
-    EM.popen('bin/bt-ready', Process, callback)
+    EM.popen("bt-ready \"#{@repository}\"", Process, callback)
   end
 
   class Process < EM::Connection
@@ -47,7 +48,8 @@ class Ready
 end
 
 class Go
- def initialize commit, stage
+  def initialize repository, commit, stage
+    @repository = repository
     @commit = commit
     @stage = stage
     @done = EM::DefaultDeferrable.new
@@ -63,7 +65,7 @@ class Go
   end
 
   def build
-    @connection = EM.popen("bin/bt-go --commit #{@commit} --stage #{@stage}", Process, @done, @line_callbacks)
+    @connection = EM.popen("bt-go --commit #{@commit} --stage #{@stage} --directory \"#{@repository}\"", Process, @done, @line_callbacks)
   end
 
   def stop
@@ -94,7 +96,7 @@ class Agent
     @stop = EM::DefaultDeferrable.new
     @lead = EM::DefaultDeferrable.new
     @done = EM::DefaultDeferrable.new
-    @connection = EM.popen("bin/bt-agent #{key}", Process, @stop, @lead)
+    @connection = EM.popen("bt-agent #{key}", Process, @stop, @lead)
   end
 
   def leading &block
