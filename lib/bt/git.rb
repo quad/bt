@@ -44,7 +44,11 @@ module BT
     def self.mirror uri, &block
       Dir.mktmpdir(['bt', '.git']) do |tmp_dir|
         repo = Grit::Repo.new(tmp_dir).fork_bare_from uri, :timeout => false
-        Mirror.new repo.path, &block
+        Mirror.new repo.path do |m|
+          m.configure_remote_fetch 'origin', "+refs/heads/*:refs/heads/*"
+          m.configure_remote_fetch 'origin', "+#{Ref.prefix}/*:#{Ref.prefix}/*"
+          block.call m
+        end
       end
     end
 
@@ -94,6 +98,10 @@ module BT
       git.fetch({:raise => true}, repository.path, "+HEAD:#{Ref.prefix}/#{commit.sha}/#{name}")
     end
 
+    def configure_remote_fetch name, refspec
+      @repo.git.config({:raise => true}, '--add', "remote.#{name}.fetch", refspec)
+    end
+
     private
 
     # Temporary: fix Grit or go home.
@@ -113,9 +121,7 @@ module BT
 
     class Mirror < Repository
       def update
-        # TODO: Make a behavior test to show "+" means the remote repository is
-        # the eternal source of truth.
-        git.fetch({:raise => true}, 'origin', "+#{Ref.prefix}/*:#{Ref.prefix}/*")
+        git.fetch({:raise => true, :timeout => false}, 'origin')
       end
 
       def push
