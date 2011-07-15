@@ -2,6 +2,35 @@ module BT
   require 'bt/yaml'
   require 'open3'
 
+  class Command < Struct.new :command
+    def initialize command, opts = {}
+      super(command)
+      @opts = {:out => $stdout}.merge(opts)
+      if opts[:silent]
+        @opts[:out] = IO.pipe[1]
+      end
+    end
+
+    def execute
+      result = ''
+      exitstatus = nil
+      Open3.popen2e('sh -') do |input, output, wait_thread|
+        input << self[:command]
+        input.close_write
+
+        begin
+          while c = output.readpartial(4096)
+            [result, @opts[:out]].each {|o| o << c}
+          end
+        rescue EOFError
+        end
+
+        exitstatus = wait_thread.value.exitstatus
+      end
+      [exitstatus, result]
+    end
+  end
+
   class Stage < Struct.new(:commit, :name, :specification, :needs, :run, :results)
 
     MSG = 'bt loves you'
@@ -9,6 +38,7 @@ module BT
     def initialize(commit, name, specification)
       super(commit, name, specification, [], nil, [])
       merge! specification
+      @run = Command.new self[:run]
     end
 
     def ok?
@@ -25,7 +55,7 @@ module BT
 
     def build
       commit.workspace(needs.map(&:result)) do
-        status, log = run
+        status, log = @run.execute
 
         files = results.select {|fn| File.readable? fn}
         flag = (files == results) && status.zero?
@@ -41,25 +71,6 @@ module BT
 
     def ready?
       needs.all?(&:ok?) && !done?
-    end
-
-    def run
-      result = ''
-      exitstatus = nil
-      Open3.popen2e('sh -') do |input, output, wait_thread|
-        input << self[:run]
-        input.close_write
-
-        begin
-          while c = output.readpartial(4096)
-            [result, $stdout].each {|o| o << c}
-          end
-        rescue EOFError
-        end
-
-        exitstatus = wait_thread.value.exitstatus
-      end
-      [exitstatus, result]
     end
 
     def to_hash
