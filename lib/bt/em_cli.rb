@@ -1,6 +1,10 @@
 require 'eventmachine'
+require 'bt/cli'
+require 'andand'
 
 class Ready
+  include BT::Cli
+
   def initialize repository, &callback
     @callback = callback
     @readies = []
@@ -25,7 +29,7 @@ class Ready
   end
 
   def refresh &callback
-    EM.popen("bt-ready \"#{@repository}\"", Process, callback)
+    EM.popen("#{find_command :ready} \"#{@repository}\"", Process, callback)
   end
 
   class Process < EM::Connection
@@ -48,6 +52,8 @@ class Ready
 end
 
 class Go
+  include BT::Cli
+
   def initialize repository, commit, stage
     @repository = repository
     @commit = commit
@@ -65,11 +71,11 @@ class Go
   end
 
   def build
-    @connection = EM.popen("bt-go --commit #{@commit} --stage #{@stage} --directory \"#{@repository}\"", Process, @done, @line_callbacks)
+    @connection = EM.popen("#{find_command :go} --commit #{@commit} --stage #{@stage} --directory \"#{@repository}\"", Process, @done, @line_callbacks)
   end
 
   def stop
-    @connection and @connection.close_connection
+    @connection.andand.close_connection
   end
 
   class Process < EM::Connection
@@ -91,12 +97,12 @@ class Go
 end
 
 class Agent
+  include BT::Cli
+
   def initialize key
-    @key = key
     @stop = EM::DefaultDeferrable.new
     @lead = EM::DefaultDeferrable.new
-    @done = EM::DefaultDeferrable.new
-    @connection = EM.popen("bt-agent #{key}", Process, @stop, @lead)
+    @connection = EM.popen("#{find_command :agent} #{key}", Process, @stop, @lead)
   end
 
   def leading &block
