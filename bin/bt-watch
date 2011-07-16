@@ -27,7 +27,6 @@ EM.run {
     end
 
     agent.stopped do
-      puts "#{commit}/#{stage}: AGENT STOP"
       go.stop
       ready.next
     end
