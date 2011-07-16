@@ -40,7 +40,7 @@ EM.run {
 
   ready.none { EM.add_timer(2, proc { ready.next }) }
 
-  Signal.trap('INT') { puts "STOPPING"; EM.stop }
+  Signal.trap('INT') { EM.stop }
 
   ready.next
 }
