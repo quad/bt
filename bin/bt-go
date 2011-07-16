@@ -30,8 +30,15 @@ stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} 
 
 pipeline = BT::Pipeline.new commit, stage_definition
 
-while (stage = pipeline.incomplete.select { |s| opts[:stage] ? s.name == opts[:stage] : s.ready? }.first)
+if opts[:stage]
+  stage = pipeline.stages.detect { |s| s.name == opts[:stage] } or raise "No stage #{opts[:stage].inspect} for commit #{commit.sha}"
+  raise "#{stage} is not ready" unless stage.ready?
   stage.build
   puts "#{stage.name}: #{stage.result}"
-  break if opts[:once]
+else
+  while (stage = pipeline.ready.shuffle.first)
+    stage.build
+    puts "#{stage.name}: #{stage.result}"
+    break if opts[:once]
+  end
 end

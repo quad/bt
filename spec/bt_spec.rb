@@ -89,12 +89,18 @@ results:
       eos
     end
 
-    let!(:initial_commit) { project.repo.commits.first }
+    after_executing 'bt-go --stage second', :raise => false do
+      it { should_not have_results_for project.head }
+    end
 
-    after_executing 'bt-go --stage second' do
-      it { should have_bt_ref 'first', initial_commit }
-      it { should have_bt_ref 'second', initial_commit }
-      it { should_not have_bt_ref 'third', initial_commit }
+    after_executing 'bt-go --stage first' do
+      it { should have_results_for(project.head).including_stages('first') }
+      it { should_not have_results_for(project.head).including_stages('second', 'third') }
+
+      after_executing 'bt-go --stage second' do
+        it { should have_results_for(project.head).including_stages('first', 'second') }
+        it { should_not have_results_for(project.head).including_stages('third') }
+      end
     end
   end
 
