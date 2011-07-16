@@ -24,6 +24,13 @@ module BT
       {commit.sha => stages.inject({}) {|result, stage| result.merge(stage.to_hash)}}
     end
 
+    def status
+      return 'FAIL' if stages.any?(&:fail?)
+      return 'PASS' if stages.all?(&:ok?)
+      return 'INCOMPLETE' if stages.any?(&:ok?)
+      'UNKNOWN'
+    end
+
     private
 
     def next_satisfied! stage_definition, known_stages

@@ -203,9 +203,9 @@ end
 
 RSpec::Matchers.define :have_results_for do |commit|
   match do |project|
-    actual_results = JSON.parse(project.execute("bt-results --format json --commit #{commit.sha} \"#{project.repo.path}\""))
+    actual_results = JSON.parse(project.execute("bt-results --format json --commit #{commit.sha} \"#{project.repo.path}\" --max-count 1"))
 
-    result_stages = actual_results[commit.sha]
+    result_stages = actual_results.first[commit.sha]
 
     interesting_stages = @include_stages || result_stages.keys
 
