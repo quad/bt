@@ -13,7 +13,9 @@ Usage:
   EOS
   opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to open the shell in', :default => 'HEAD'
-  opt :bare, 'No working tree'
+  opt :bare, 'Open the shell in a bare repository'
+
+  conflicts :bare, :commit
 end
 
 Grit.debug = true if opts[:debug]
