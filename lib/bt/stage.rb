@@ -22,10 +22,6 @@ module BT
       result
     end
 
-    def incomplete?
-      !done?
-    end
-
     def build
       commit.workspace(needs.map(&:result)) do
         status, log = run
