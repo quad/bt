@@ -132,6 +132,38 @@ first:
 
       it { should have(0).needs }
     end
+
+    context "all stages have passed" do
+      before do
+        commit.stub(:result).and_return(mock(:commit, :message => 'PASS bt loves you'))
+      end
+
+      its(:status) { should == 'PASS' }
+    end
+
+    context "second stage failed" do
+      before do
+        commit.stub(:result).and_return(nil)
+        commit.stub(:result).with('second').and_return(mock(:commit, :message => 'FAIL bt loves you'))
+      end
+
+      its(:status) { should == 'FAIL' }
+    end
+
+    context "stages not failed nor all passed" do
+      before { commit.stub(:result).and_return(nil) }
+
+      its(:status) { should == 'UNKNOWN' }
+    end
+
+    context "no stages failed and some passed" do
+      before do
+        commit.stub(:result).and_return(nil)
+        commit.stub(:result).with("first").and_return(mock(:commit, :message => 'PASS bt loves you'))
+      end
+
+      its(:status) { should == 'INCOMPLETE' }
+    end
   end
 end
 
