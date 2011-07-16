@@ -41,7 +41,6 @@ EM.run {
   end
 
   ready.none do
-    puts "No Readies, waiting for (2) seconds"
     EM.add_timer(2, proc { ready.next })
   end
 
