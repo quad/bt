@@ -21,10 +21,9 @@ EM.run {
     agent = Agent.new "#{commit}/#{stage}"
     go = Go.new repository, commit, stage
 
-    agent.leading do
-      puts "#{commit}/#{stage}: START"
-      go.build
-    end
+    agent.leading { go.build }
+
+    go.started { |commit, stage| puts "#{commit}/#{stage}: START" }
 
     agent.stopped do
       go.stop
@@ -39,9 +38,7 @@ EM.run {
     end
   end
 
-  ready.none do
-    EM.add_timer(2, proc { ready.next })
-  end
+  ready.none { EM.add_timer(2, proc { ready.next }) }
 
   Signal.trap('INT') { puts "STOPPING"; EM.stop }
 

@@ -6,10 +6,9 @@ class Ready
   include BT::Cli
 
   def initialize repository, &callback
-    @callback = callback
-    @readies = []
-    @nones = []
     @repository = repository
+    @callback = callback
+    @nones = []
   end
 
   def next
@@ -59,6 +58,7 @@ class Go
     @commit = commit
     @stage = stage
     @done = EM::DefaultDeferrable.new
+    @started_callbacks = []
     @line_callbacks = []
   end
 
@@ -70,7 +70,12 @@ class Go
     @line_callbacks << block
   end
 
+  def started &block
+    @started_callbacks << block
+  end
+
   def build
+    @started_callbacks.each { |c| c.call @commit, @stage }
     @connection = EM.popen("#{find_command :go} --commit #{@commit} --stage #{@stage} --directory \"#{@repository}\"", Process, @done, @line_callbacks)
   end
 
