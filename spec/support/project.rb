@@ -1,8 +1,8 @@
 require 'yaml'
 require 'grit'
 require 'forwardable'
-require 'open3'
 require 'json'
+require 'uuid'
 
 module Project
   module RSpec
@@ -15,7 +15,7 @@ module Project
       alias :commit :proc
 
       def project &block
-        let!(:project) { Model.at(Dir.mktmpdir, &block) }
+        let!(:project) { Model.at(Dir.mktmpdir('bt-test-project'), &block) }
 
         subject { project }
       end
@@ -30,16 +30,13 @@ module Project
 
       def after_executing_async command, &block
         context "after executing #{command} asynchronously" do
-          let(:watch_thread) do
-            stdin, stdout, stderr, thread = subject.execute_async(command)
-            thread
+          let!(:pid) do
+            subject.execute_async(command)
           end
-
-          before { watch_thread }
 
           instance_eval &block
 
-          after { Process.kill('TERM', watch_thread.pid) }
+          after { Process.kill('TERM', -Process.getpgid(pid)) }
         end
       end
 
@@ -92,8 +89,15 @@ module Project
 
     def initialize dir, &block
       @repo = Grit::Repo.init(dir)
+      @repo.git.config({}, 'core.worktree', @repo.working_dir)
       yield self
       @repo.commit_all("Initial commit")
+    end
+
+    def commit_change
+      uuid = UUID.new.generate
+      file '.', 'CHANGE', uuid
+      @repo.commit_all "Committed #{uuid}"
     end
 
     def file directory, name, content, mode = 0444
@@ -139,11 +143,11 @@ module Project
     end
 
     def execute_async command
-      ios = []
+      pid = nil
       FileUtils.cd repo.working_dir do
-        ios = Open3.popen3(command)
+        pid = Kernel.spawn(command, :pgroup => true, :err => :out, :out => '/dev/null')
       end
-      ios
+      pid
     end
 
     def build
@@ -213,6 +217,10 @@ RSpec::Matchers.define :have_results_for do |commit|
 
   chain :including_stages do |*stages|
     @include_stages = stages
+  end
+
+  failure_message_for_should do |project|
+    "expected project to have results for #{commit.sha}"
   end
 end
 
