@@ -1,5 +1,10 @@
+require 'grit'
+
 module BT
   module Cli
+    Grit.logger = Logger.new($stderr)
+    Grit.debug = true if ENV['DEBUG']
+
     require 'trollop'
 
     def single_repo_cmd(command, help, &block)
@@ -12,8 +17,6 @@ Usage:
         EOS
         opt :debug, "Debugging text scrolls"
       end
-
-      Grit.debug = true if opts[:debug]
 
       yield Repository.new ARGV.shift || Dir.pwd
     end

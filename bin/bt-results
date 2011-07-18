@@ -6,6 +6,8 @@ require 'bt'
 require 'bt/yaml'
 require 'json'
 
+include BT::Cli
+
 FORMATS = {
   'text' => proc do |pipelines|
     "".tap do |result|
@@ -32,7 +34,6 @@ Shows build results for head.
 Usage:
 \tbt-results [OPTIONS...] [URI|DIRECTORY]
   EOS
-  opt :debug, 'Debugging text scrolls'
   opt :format, "Output format [#{FORMATS.keys.join("|")}]", :default => 'text'
   opt :commit, 'Start history from this commit', :default => 'HEAD'
   opt :max_count, 'Max number of results from specified commit', :default => 1
@@ -40,11 +41,7 @@ end
 
 Trollop::die :format, "must be one of [#{FORMATS.keys.join("|")}]" unless FORMATS.keys.include?(opts[:format])
 
-include BT::Cli
-
 uri = ARGV.shift || Dir.pwd
-
-Grit.debug = true if opts[:debug]
 
 BT::Repository.mirror(uri) do |r|
   r.update
