@@ -14,13 +14,10 @@ Builds ready stages until there aren't any.
 Usage:
 \tbt-go
   EOS
-  opt :debug, 'Debugging text scrolls'
   opt :once, 'Build only the next ready stage'
   opt :commit, 'Build the specified commit', :default => 'HEAD'
   opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
 end
-
-Grit.debug = true if opts[:debug]
 
 r = BT::Repository.new opts[:directory]
 

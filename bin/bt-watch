@@ -13,10 +13,7 @@ Watch a repository for stages to build
 Usage:
 \tbt-watch [repository]
   EOS
-  opt :debug, "Debugging text scrolls"
 end
-
-Grit.debug = true if opts[:debug]
 
 uri = ARGV.shift || Dir.pwd
 
