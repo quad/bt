@@ -5,6 +5,8 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'bt/em_cli'
 require 'trollop'
 
+include BT::Cli
+
 opts = Trollop::options do
   banner <<-EOS
 Watch a repository for stages to build

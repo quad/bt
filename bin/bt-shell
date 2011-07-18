@@ -4,6 +4,8 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'bt'
 
+include BT::Cli
+
 opts = Trollop::options do
   banner <<-EOS
 Opens a shell in an isolated build environment.
@@ -11,14 +13,11 @@ Opens a shell in an isolated build environment.
 Usage:
 \tbt-shell
   EOS
-  opt :debug, 'Debugging text scrolls'
   opt :commit, 'Commit to open the shell in', :default => 'HEAD'
   opt :bare, 'Open the shell in a bare repository'
 
   conflicts :bare, :commit
 end
-
-Grit.debug = true if opts[:debug]
 
 directory = ARGV.shift || Dir.pwd
 
