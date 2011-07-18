@@ -17,18 +17,25 @@ Usage:
   opt :once, 'Build only the next ready stage'
   opt :commit, 'Build the specified commit', :default => 'HEAD'
   opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
+  opt :stage, 'Specify a specific stage to build', :type => :string
 end
 
 r = BT::Repository.new opts[:directory]
-
 commit = r.commit(opts[:commit])
 
 stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} "#{opts[:directory]}"`)
 
 pipeline = BT::Pipeline.new commit, stage_definition
 
-while (stage = pipeline.ready.first)
+if opts[:stage]
+  stage = pipeline.stages.detect { |s| s.name == opts[:stage] } or raise "No stage #{opts[:stage].inspect} for commit #{commit.sha}"
+  raise "#{stage} is not ready" unless stage.ready?
   stage.build
   puts "#{stage.name}: #{stage.result}"
-  break if opts[:once]
+else
+  while (stage = pipeline.ready.shuffle.first)
+    stage.build
+    puts "#{stage.name}: #{stage.result}"
+    break if opts[:once]
+  end
 end

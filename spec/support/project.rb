@@ -20,9 +20,9 @@ module Project
         subject { project }
       end
 
-      def after_executing command, &block
+      def after_executing command, opts = {}, &block
         context "when '#{command}' has executed" do
-          before { project.execute command }
+          before { project.execute command, opts }
 
           instance_eval &block
         end
@@ -133,11 +133,12 @@ module Project
       Ref.find_all(self.repo).detect { |r| r.name == "#{commit.sha}/#{stage}" }
     end
 
-    def execute command, debug = false
+    def execute command, opts = {}
+      actual_opts = {:debug => false, :raise => true}.merge(opts)
       output = nil
       FileUtils.cd repo.working_dir do
-        output = %x{#{command} #{debug ? '--debug' : ''} 2>&1}
-        raise output unless $?.exitstatus.zero?
+        output = %x{#{command} #{opts[:debug] ? '--debug' : ''} 2>&1}
+        raise output if opts[:raise] && !$?.exitstatus.zero?
       end
       output
     end
@@ -161,10 +162,14 @@ module Project
       output
     end
 
-    def ready?
-      output = %x{bt-ready #{repo.working_dir}}
+    def ready_stages opts = ""
+      output = %x{bt-ready #{opts} #{repo.working_dir}}
       raise output unless $?.exitstatus.zero?
-      !output.empty?
+      output.split "\n"
+    end
+
+    def ready?
+      !ready_stages.empty?
     end
   end
 end
