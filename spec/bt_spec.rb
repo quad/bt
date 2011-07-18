@@ -22,6 +22,8 @@ results:
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }
       end
+
+      its(:ready_stages) { should be_empty }
     end
   end
 
@@ -68,6 +70,40 @@ results:
     end
   end
 
+  describe "a repo with a bt build, which has built a stage with needs" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: exit 0
+      eos
+
+      p.stage :second, <<-eos
+  run: exit 0
+  needs:
+    - first
+      eos
+
+      p.stage :third, <<-eos
+  run: exit 0
+  needs:
+    - second
+      eos
+    end
+
+    after_executing 'bt-go --stage second', :raise => false do
+      it { should_not have_results_for project.head }
+    end
+
+    after_executing 'bt-go --stage first' do
+      it { should have_results_for(project.head).including_stages('first') }
+      it { should_not have_results_for(project.head).including_stages('second', 'third') }
+
+      after_executing 'bt-go --stage second' do
+        it { should have_results_for(project.head).including_stages('first', 'second') }
+        it { should_not have_results_for(project.head).including_stages('third') }
+      end
+    end
+  end
+
   describe "a repo with two dependent stages" do
     project do |p|
       p.stage :first, <<-eos
@@ -85,13 +121,14 @@ results:
       eos
     end
 
-    let(:first_result) { project.bt_ref('first', project.head).commit }
-    let(:second_result) { project.bt_ref('second', project.head).commit }
-
     it { should be_ready }
+
+    its(:ready_stages) { should == ["#{project.head.sha}/first"]}
 
     after_executing 'bt-go --once' do
       it { should be_ready }
+
+      its(:ready_stages) { should == ["#{project.head.sha}/second"] }
 
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }

@@ -4,6 +4,7 @@ PATH
     build-thing (0.0.1)
       andand
       dnssd
+      eventmachine
       grit
       haml
       sinatra
