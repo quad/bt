@@ -44,10 +44,7 @@ module BT
 
     def run
       result = ''
-      IO.popen('sh -', 'r+') do |io|
-        io << self[:run]
-        io.close_write
-
+      IO.popen(['sh', '-c', self[:run], :err => [:child, :out]]) do |io|
         begin
           while c = io.readpartial(4096)
             [result, $stdout].each {|o| o << c}
