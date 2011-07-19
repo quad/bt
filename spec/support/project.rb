@@ -273,3 +273,11 @@ module RSpec
   end
 end
 
+RSpec::Matchers.define :have_parents do |*parents|
+  match do |commit|
+    parents.all? do |parent|
+      commit.parents.map(&:sha).include? parent.sha
+    end
+  end
+end
+

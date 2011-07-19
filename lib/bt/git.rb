@@ -16,7 +16,7 @@ module BT
 
     def workspace depends, &block
       repository.working_tree do |t|
-        depends.each { |n| t.checkout_result n }
+        t.merge depends
 
         name, message, files = yield
 
@@ -157,9 +157,9 @@ module BT
         git.checkout({:raise => true, :b => true}, UUID.new.generate, sha)
       end
 
-      def checkout_result commit
-        git.merge({:raise => true, :squash => true}, commit.sha)
-        git.reset({:raise => true, :mixed => true}, commit.sha)
+      def merge depends
+        shas = depends.map(&:sha)
+        git.merge({:raise => true, :no_commit => true}, 'HEAD', *shas)
       end
     end
   end
