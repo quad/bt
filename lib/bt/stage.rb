@@ -1,5 +1,6 @@
 module BT
   require 'bt/yaml'
+  require 'open3'
 
   class Stage < Struct.new(:commit, :name, :specification, :needs, :run, :results)
 
@@ -44,15 +45,21 @@ module BT
 
     def run
       result = ''
-      IO.popen(['sh', '-c', self[:run], :err => [:child, :out]]) do |io|
+      exitstatus = nil
+      Open3.popen2e('sh -') do |input, output, wait_thread|
+        input << self[:run]
+        input.close_write
+
         begin
-          while c = io.readpartial(4096)
+          while c = output.readpartial(4096)
             [result, $stdout].each {|o| o << c}
           end
         rescue EOFError
         end
+
+        exitstatus = wait_thread.value.exitstatus
       end
-      [$?.exitstatus, result]
+      [exitstatus, result]
     end
 
     def to_hash
