@@ -149,5 +149,34 @@ results:
       it { should have_results_for(project.head).including_stages('first', 'second') }
     end
   end
+
+  describe "a project which has multiple upstream stages" do
+    project do |p|
+      p.stage :first, <<-eos
+  run: touch first
+  results:
+    - first
+      eos
+
+      p.stage :second, <<-eos
+  run: touch second
+  results:
+    - second
+      eos
+
+      p.stage 'third', <<-eos
+run: exit 0
+needs:
+  - first
+  - second
+      eos
+    end
+
+    after_executing 'bt-go' do
+      result_of stage { [ project.head, 'third' ] } do
+        its('commit') { should have_parents project.bt_ref('first', project.head).commit, project.bt_ref('second', project.head).commit }
+      end
+    end
+  end
 end
 
