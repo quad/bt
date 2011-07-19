@@ -175,6 +175,8 @@ needs:
     after_executing 'bt-go' do
       result_of stage { [ project.head, 'third' ] } do
         its('commit') { should have_parents project.bt_ref('first', project.head).commit, project.bt_ref('second', project.head).commit }
+        it { should have_blob('first') }
+        it { should have_blob('second') }
       end
     end
   end
