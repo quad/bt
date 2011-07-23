@@ -1,6 +1,5 @@
 module BT
   require 'bt/yaml'
-  require 'open3'
 
   class Command < Struct.new :command
     def initialize command, silent = false 
@@ -10,22 +9,16 @@ module BT
 
     def execute
       result = ''
-      exitstatus = nil
-      Open3.popen2e('sh -') do |input, output, wait_thread|
-        input << self[:command]
-        input.close_write
-
+      IO.popen(['sh', '-c', self[:command], :err => [:child, :out]]) do |io|
         begin
-          while c = output.readpartial(4096)
+          while c = io.readpartial(4096)
             result << c
             $stdout << c unless @silent
           end
         rescue EOFError
         end
-
-        exitstatus = wait_thread.value.exitstatus
       end
-      [exitstatus, result]
+      [$?.exitstatus, result]
     end
   end
 
