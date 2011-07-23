@@ -3,12 +3,9 @@ module BT
   require 'open3'
 
   class Command < Struct.new :command
-    def initialize command, opts = {}
+    def initialize command, silent = false 
       super(command)
-      @opts = {:out => $stdout}.merge(opts)
-      if opts[:silent]
-        @opts[:out] = IO.pipe[1]
-      end
+      @silent = silent
     end
 
     def execute
@@ -20,7 +17,8 @@ module BT
 
         begin
           while c = output.readpartial(4096)
-            [result, @opts[:out]].each {|o| o << c}
+            result << c
+            $stdout << c unless @silent
           end
         rescue EOFError
         end

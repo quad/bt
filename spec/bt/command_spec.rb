@@ -1,7 +1,7 @@
 require 'bt'
 
 describe BT::Command do
-  subject { BT::Command.new(command, :silent => true).execute }
+  subject { BT::Command.new(command, true).execute }
 
   describe "echo blah" do
     let(:command) { "echo \"blah\"" }
