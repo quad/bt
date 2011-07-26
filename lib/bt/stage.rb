@@ -1,6 +1,27 @@
 module BT
   require 'bt/yaml'
 
+  class Command < Struct.new :command
+    def initialize command, silent = false 
+      super(command)
+      @silent = silent
+    end
+
+    def execute
+      result = ''
+      IO.popen(['sh', '-c', self[:command], :err => [:child, :out]]) do |io|
+        begin
+          while c = io.readpartial(4096)
+            result << c
+            $stdout << c unless @silent
+          end
+        rescue EOFError
+        end
+      end
+      [$?.exitstatus, result]
+    end
+  end
+
   class Stage < Struct.new(:commit, :name, :specification, :needs, :run, :results)
 
     MSG = 'bt loves you'
@@ -8,6 +29,7 @@ module BT
     def initialize(commit, name, specification)
       super(commit, name, specification, [], nil, [])
       merge! specification
+      @run = Command.new self[:run]
     end
 
     def ok?
@@ -24,7 +46,7 @@ module BT
 
     def build
       commit.workspace(needs.map(&:result)) do
-        status, log = run
+        status, log = @run.execute
 
         files = results.select {|fn| File.readable? fn}
         flag = (files == results) && status.zero?
@@ -40,22 +62,6 @@ module BT
 
     def ready?
       needs.all?(&:ok?) && !done?
-    end
-
-    def run
-      result = ''
-      IO.popen('sh -', 'r+') do |io|
-        io << self[:run]
-        io.close_write
-
-        begin
-          while c = io.readpartial(4096)
-            [result, $stdout].each {|o| o << c}
-          end
-        rescue EOFError
-        end
-      end
-      [$?.exitstatus, result]
     end
 
     def to_hash

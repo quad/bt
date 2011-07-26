@@ -55,6 +55,20 @@ results:
     end
   end
 
+  describe "a repo with a failing build which outputs to stderr" do
+    project do |p|
+      p.stage :first, <<-eos
+run: echo "ERROR" 1>&2 && exit 1
+      eos
+    end
+
+    after_executing 'bt-go' do
+      result_of stage { [project.head, 'first'] } do
+        its('commit.message') { should == "FAIL bt loves you\n\nERROR" }
+      end
+    end
+  end
+
   describe "a repo with a failing dependant stage" do
     project do |p|
       p.failing_stage 'first'
