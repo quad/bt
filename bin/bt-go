@@ -18,6 +18,8 @@ Usage:
   opt :commit, 'Build the specified commit', :default => 'HEAD'
   opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
   opt :stage, 'Specify a specific stage to build', :type => :string
+
+  conflicts :once, :stage
 end
 
 r = BT::Repository.new opts[:directory]
