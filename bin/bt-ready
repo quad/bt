@@ -7,8 +7,21 @@ require 'bt/yaml'
 
 include BT::Cli
 
-single_repo_cmd('ready', 'List stages ready to go') do |r|
-  stage_definition = YAML.load(`#{find_command :stages} --commit HEAD "#{r.path}"`)
-  pipeline = BT::Pipeline.new r.head, stage_definition
-  pipeline.ready.each { |s| puts "#{r.head.sha}/#{s.name}" }
+opts = Trollop::options do
+  banner <<-EOS
+  List stages ready to go
+
+Usage: bt-ready [OPTS...] [DIRECTORY]
+  EOS
+
+  opt :commit, 'Commit to check for ready stages', :default => 'HEAD'
+end
+
+directory = ARGV.shift || Dir.pwd
+
+BT::Repository.new(directory) do |r|
+  commit = r.commit(opts[:commit])
+  stage_definition = YAML.load(`#{find_command :stages} --commit "#{commit.sha}" "#{r.path}"`)
+  pipeline = BT::Pipeline.new commit, stage_definition
+  puts pipeline.ready
 end

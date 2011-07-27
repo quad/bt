@@ -75,7 +75,8 @@ module BT
     end
 
     def commit name
-      Commit.new self, @repo.commit(name)
+      raise "Could not resolve commit with name: #{name}" unless commit = @repo.commit(name)
+      Commit.new self, commit
     end
 
     def commits options = {}
