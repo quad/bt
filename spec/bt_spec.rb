@@ -139,6 +139,10 @@ run: echo "ERROR" 1>&2 && exit 1
 
     its(:ready_stages) { should == ["#{project.head.sha}/first"]}
 
+    result_of_executing 'bt-go --once --stage foo' do
+      should == "Error: --once conflicts with --stage.\nTry --help for help.\n"
+    end
+
     after_executing 'bt-go --once' do
       it { should be_ready }
 
