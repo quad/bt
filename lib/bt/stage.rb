@@ -69,6 +69,10 @@ module BT
       {name => result_hash}
     end
 
+    def to_s
+      "#{commit.sha}/#{name}"
+    end
+
     private
 
     def merge!(hash)

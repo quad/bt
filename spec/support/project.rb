@@ -94,6 +94,10 @@ module Project
       @repo.commit_all("Initial commit")
     end
 
+    def commit message
+      @repo.commit_all message
+    end
+
     def commit_change
       uuid = UUID.new.generate
       file '.', 'CHANGE', uuid
