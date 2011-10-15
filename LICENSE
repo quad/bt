@@ -21,7 +21,7 @@ Depends upon:
 
   * [andand http://andand.rubyforge.org/], by Reginald Braithwaite, under the MIT license.
   * [dnssd http://dnssd.rubyforge.org/], by Chad Fowler, et al., under the Ruby license.
-  * [eventmachine http://www.rubyeventmachine.com/], by Francis Cianfrocca, under the GPL version 2 licence.
+  * [eventmachine http://www.rubyeventmachine.com/], by Francis Cianfrocca, under the Ruby licence.
   * [grit http://dnssd.rubyforge.org/], by Tom Preston-Werner, under the MIT license.
   * [haml http://haml-lang.com/], by Hampton Catlin and Nathan Weizenbaum, under the MIT license.
   * [sinatra http://www.sinatrarb.com/], by Blake Mizerany, under the MIT license.
