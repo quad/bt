@@ -1,4 +1,4 @@
-module BT
+ module BT
   require 'bt/yaml'
 
   class Command < Struct.new :command
@@ -33,11 +33,11 @@ module BT
     end
 
     def ok?
-      (r = result) && r.message.start_with?('PASS')
+      result && result.message.start_with?('PASS')
     end
 
     def fail?
-      (r = result) && r.message.start_with?('FAIL')
+      result && result.message.start_with?('FAIL')
     end
 
     def done?

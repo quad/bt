@@ -4,13 +4,18 @@ require 'set'
 module BT
   class Pipeline < Struct.new(:commit, :stage_definition)
     def stages
-      stage_definition = self[:stage_definition].dup
+      unknown_stages = self[:stage_definition].dup
       Set.new.tap do |known_stages|
-        while !stage_definition.empty?
-          name, definition = next_satisfied! stage_definition, known_stages
+        while !unknown_stages.empty?
+          name, definition = next_satisfied! unknown_stages, known_stages
+
+          # Find all of the needs for this stage. They're already guaranteed to
+          # be amongst the known stages since the stage we selected must have
+          # had all of its requirements satisfied.
           needs = definition['needs'].map do |name|
             known_stages.detect { |s| s.name == name }
           end
+
           known_stages << BT::Stage.new(commit, name, definition.merge('needs' => needs))
         end
       end
@@ -33,11 +38,13 @@ module BT
 
     private
 
-    def next_satisfied! stage_definition, known_stages
-      stage = stage_definition.detect do |name, definition|
+    def next_satisfied! unkown_stages, known_stages
+      # Find the first stage for whom all dependencies have been satisfied. 
+      stage = unkown_stages.detect do |name, definition|
         definition['needs'].all? {|n| known_stages.map(&:name).include? n}
       end
-      stage_definition.delete(stage[0])
+
+      unkown_stages.delete(stage[0])
       stage
     end
   end
