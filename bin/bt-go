@@ -14,7 +14,7 @@ Builds ready stages until there aren't any.
 Usage:
 \tbt-go
   EOS
-  opt :once, 'Build only the next ready stage'
+  opt :once, 'Build only the next ready stage that has not already built'
   opt :commit, 'Build the specified commit', :default => 'HEAD'
   opt :directory, 'Change to DIRECTORY before doing anything.', :short => :c, :type => :string, :default => Dir.pwd
   opt :stage, 'Specify a specific stage to build', :type => :string
@@ -29,22 +29,26 @@ stage_definition = YAML.load(`#{find_command :stages} --commit #{opts[:commit]} 
 
 pipeline = BT::Pipeline.new commit, stage_definition
 
+def build(stage)
+  stage.build
+  puts "#{stage.name}: #{stage.result}"
+end
+
 if opts[:stage]
   stage = pipeline.stages.detect { |s| s.name == opts[:stage] } or raise "No stage #{opts[:stage].inspect} for commit #{commit.sha}"
 
   if stage.done?
     puts "#{stage} is already done"
   elsif stage.ready? 
-    stage.build
+    build(stage)
   else
     raise "#{stage} is not ready, it's blocked by #{stage.blockers.map(&:name).join(', ')}"
   end
-
-  puts "#{stage.name}: #{stage.result}"
+elsif opts[:once]
+  stage = pipeline.ready.reject(&:done?).first
+  stage.andand { |s| build(s) } or raise "No stage is ready but unbuilt"
 else
-  while (stage = pipeline.ready.shuffle.first)
-    stage.build
-    puts "#{stage.name}: #{stage.result}"
-    break if opts[:once]
+  pipeline.walk do |stage|
+    build(stage)
   end
 end

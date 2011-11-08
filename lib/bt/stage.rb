@@ -66,7 +66,7 @@ module BT
     end
 
     def ready?
-      needs.all?(&:passed?) && !done?
+      needs.all?(&:passed?)
     end
 
     def to_hash

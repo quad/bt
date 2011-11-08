@@ -23,7 +23,7 @@ results:
         it { should have_blob('new_file').containing("blah\n") }
       end
 
-      its(:ready_stages) { should be_empty }
+      its(:ready_stages) { should_not be_empty }
     end
   end
 
@@ -51,7 +51,7 @@ results:
         its('commit.message') { should == "FAIL bt loves you" }
       end
 
-      it { should_not be_ready }
+      it { should be_ready }
     end
   end
 
@@ -80,7 +80,7 @@ run: echo "ERROR" 1>&2 && exit 1
         its('commit.message') { should == "FAIL bt loves you" }
       end
 
-      it { should_not be_ready }
+      it { should be_ready }
     end
   end
 
@@ -146,8 +146,6 @@ run: echo "ERROR" 1>&2 && exit 1
     after_executing 'bt-go --once' do
       it { should be_ready }
 
-      its(:ready_stages) { should == ["#{project.head.sha}/second"] }
-
       result_of stage { [project.head, 'first'] } do
         it { should have_blob('new_file').containing("blah\n") }
         its('commit.message') { should == "PASS bt loves you" }
@@ -157,7 +155,7 @@ run: echo "ERROR" 1>&2 && exit 1
     end
 
     after_executing 'bt-go' do
-      it { should_not be_ready }
+      it { should be_ready }
 
       result_of stage { [project.head, 'second'] } do
         it { should have_blob('new_file').containing("blah\nblah blah\n") }
