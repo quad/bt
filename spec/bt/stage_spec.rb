@@ -49,12 +49,20 @@ describe "an incomplete stage" do
     let(:needs) { [mock(:stage, :passed? => true), mock(:stage, :passed? => true)] }
 
     it { should be_ready }
+
+    it "should have no blockers" do
+      subject.blockers.should== [] 
+    end
   end
 
   context "with unsatisfied needs" do
     let(:needs) { [mock(:stage, :passed? => true), mock(:stage, :passed? => false)] }
 
     it { should_not be_ready }
+
+    it "should have blockers" do
+      subject.blockers.should== needs[1..-1]
+    end
   end
 end
 
