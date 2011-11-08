@@ -3,3 +3,5 @@
 tags
 pkg
 spec/spec.html
+vendor/cache
+Gemfile.lock
