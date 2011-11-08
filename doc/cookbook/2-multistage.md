@@ -81,7 +81,7 @@ We still need to add that cucumber guacamole that we promised, though. First we'
 
         $ mkdir features
 
-edit a simple feature file `features/burrito_cooking_101.feature`:
+Edit a simple feature file `features/burrito_cooking_101.feature`:
 
 ```ruby
 Feature: Burrito building
@@ -195,4 +195,4 @@ But, of course, it requires the rspecs step to have finished successfully and so
 
 ## What's Next?
 
-Dynamically stages.
+Dynamically generating stages.
