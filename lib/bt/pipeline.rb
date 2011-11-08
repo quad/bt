@@ -30,9 +30,9 @@ module BT
     end
 
     def status
-      return 'FAIL' if stages.any?(&:fail?)
-      return 'PASS' if stages.all?(&:ok?)
-      return 'INCOMPLETE' if stages.any?(&:ok?)
+      return 'FAIL' if stages.any?(&:failed?)
+      return 'PASS' if stages.all?(&:passed?)
+      return 'INCOMPLETE' if stages.any?(&:passed?)
       'UNKNOWN'
     end
 
