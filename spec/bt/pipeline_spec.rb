@@ -77,6 +77,69 @@ first:
     end
   end 
 
+  context "with a diamond dependency" do
+    let(:commit) { mock(:commit) }
+    let(:definition) do
+      <<-EOS
+---
+first:
+  needs: []
+  results: []
+  run: exit 0
+
+secondA:
+  needs:
+  - first
+  results: []
+  run: exit 0
+
+secondB:
+  needs:
+  - first
+  results: []
+  run: exit 0
+
+third:
+  needs:
+  - secondA
+  - secondB
+  results: []
+  run: exit 0
+      EOS
+    end
+
+    let(:pipeline) { BT::Pipeline.new commit, YAML.load(definition) }
+
+    subject { pipeline }
+
+    let(:first) { BT::Stage.new(commit, 'first', {'needs' => [], 'results' => [], 'run' => 'exit 0'}) }
+    let(:secondA) { BT::Stage.new(commit, 'secondA', {'needs' => [first], 'results' => [], 'run' => 'exit 0'}) }
+    let(:secondB) { BT::Stage.new(commit, 'secondB', {'needs' => [first], 'results' => [], 'run' => 'exit 0'}) }
+    let(:third) { BT::Stage.new(commit, 'third', {'needs' => [secondA, secondB], 'results' => [], 'run' => 'exit 0'}) }
+
+    describe 'third stage' do
+      subject { pipeline.stages.detect { |s| s.name == 'third' } }
+      its(:needs) { should == [secondA, secondB] }
+    end
+
+    context "all stages have passed" do
+      before do
+        commit.stub(:result).and_return(mock(:commit, :message => 'PASS bt loves you'))
+      end
+
+      its(:status) { should == 'PASS' }
+    end
+
+    context "one of the second stages fails and the other passes" do
+      before do
+        commit.stub(:result).and_return(nil)
+        commit.stub(:result).with('secondA').and_return(mock(:commit, :message => 'FAIL bt loves you'))
+      end
+
+      its(:status) { should == "FAIL" }
+    end
+  end
+
   context "with a definition comprising three out of order stages" do
     let(:commit) { mock(:commit) }
     let(:definition) do
@@ -113,9 +176,6 @@ first:
 
     describe 'first stage' do
       subject { pipeline.stages.detect {|s| s.name == 'first' } }
-
-      it { should have(1).needs }
-
       its(:needs) { should == [third] }
     end
 
