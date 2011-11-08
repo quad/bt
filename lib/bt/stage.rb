@@ -60,6 +60,10 @@
       commit.result name
     end
 
+    def blockers
+      needs.select { |n| !n.ok? }
+    end
+
     def ready?
       needs.all?(&:ok?) && !done?
     end

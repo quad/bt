@@ -31,8 +31,15 @@ pipeline = BT::Pipeline.new commit, stage_definition
 
 if opts[:stage]
   stage = pipeline.stages.detect { |s| s.name == opts[:stage] } or raise "No stage #{opts[:stage].inspect} for commit #{commit.sha}"
-  raise "#{stage} is not ready" unless stage.ready?
-  stage.build
+
+  if stage.done?
+    puts "#{stage} is already done"
+  elsif stage.ready? 
+    stage.build
+  else
+    raise "#{stage} is not ready, it's blocked by #{stage.blockers.map(&:name).join(', ')}"
+  end
+
   puts "#{stage.name}: #{stage.result}"
 else
   while (stage = pipeline.ready.shuffle.first)
