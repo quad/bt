@@ -1,5 +1,6 @@
- module BT
+module BT
   require 'bt/yaml'
+  require 'andand'
 
   class Command < Struct.new :command
     def initialize command, silent = false 
@@ -33,11 +34,11 @@
     end
 
     def ok?
-      result && result.message.start_with?('PASS')
+      result.andand { |r| r.message.start_with?('PASS') }
     end
 
     def fail?
-      result && result.message.start_with?('FAIL')
+      result.andand { |r| r.message.start_with?('FAIL') }
     end
 
     def done?

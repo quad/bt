@@ -38,13 +38,13 @@ module BT
 
     private
 
-    def next_satisfied! unkown_stages, known_stages
+    def next_satisfied! unknown_stages, known_stages
       # Find the first stage for whom all dependencies have been satisfied. 
-      stage = unkown_stages.detect do |name, definition|
+      stage = unknown_stages.detect do |name, definition|
         definition['needs'].all? {|n| known_stages.map(&:name).include? n}
       end
 
-      unkown_stages.delete(stage[0])
+      unknown_stages.delete(stage[0])
       stage
     end
   end
