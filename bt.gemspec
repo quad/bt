@@ -6,8 +6,8 @@ Gem::Specification.new do |s|
   s.name        = BT::NAME
   s.version     = BT::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Scott Robinson", "Andrew Kiellor"]
-  s.email       = ["scott@quadhome.com", "akiellor@gmail.com"]
+  s.authors     = ["Scott Robinson", "Andrew Kiellor", "Sam Gibson"]
+  s.email       = ["scott@quadhome.com", "akiellor@gmail.com", "sam@ifdown.net"]
   s.homepage    = ""
   s.summary     = %q{bt is to continuous integration as git is to version control.}
   s.description = %q{bt is to continuous integration as git is to version control.}

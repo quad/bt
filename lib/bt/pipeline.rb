@@ -3,9 +3,16 @@ require 'set'
 
 module BT
   class Pipeline < Struct.new(:commit, :stage_definition)
+    def walk &block
+      topo_sorted_stages = stages
+      while (stage = topo_sorted_stages.shift)
+        block.call stage
+      end
+    end
+
     def stages
       unknown_stages = self[:stage_definition].dup
-      Set.new.tap do |known_stages|
+      Array.new.tap do |known_stages|
         while !unknown_stages.empty?
           name, definition = next_satisfied! unknown_stages, known_stages
 
@@ -30,9 +37,9 @@ module BT
     end
 
     def status
-      return 'FAIL' if stages.any?(&:fail?)
-      return 'PASS' if stages.all?(&:ok?)
-      return 'INCOMPLETE' if stages.any?(&:ok?)
+      return 'FAIL' if stages.any?(&:failed?)
+      return 'PASS' if stages.all?(&:passed?)
+      return 'INCOMPLETE' if stages.any?(&:passed?)
       'UNKNOWN'
     end
 

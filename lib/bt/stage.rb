@@ -33,11 +33,11 @@ module BT
       @run = Command.new self[:run]
     end
 
-    def ok?
+    def passed?
       result.andand { |r| r.message.start_with?('PASS') }
     end
 
-    def fail?
+    def failed?
       result.andand { |r| r.message.start_with?('FAIL') }
     end
 
@@ -62,11 +62,11 @@ module BT
     end
 
     def blockers
-      needs.select { |n| !n.ok? }
+      needs.reject(&:passed?)
     end
 
     def ready?
-      needs.all?(&:ok?) && !done?
+      needs.all?(&:passed?)
     end
 
     def to_hash
