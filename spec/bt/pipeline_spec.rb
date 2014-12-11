@@ -1,9 +1,10 @@
+require 'support/spec_helper'
 require 'bt'
 require 'bt/yaml'
 
 describe BT::Pipeline do
   context "with a definition comprising one stage" do
-    let(:commit) { mock(:commit) }
+    let(:commit) { double(:commit) }
     let(:definition) do
       <<-EOS
 ---
@@ -22,7 +23,7 @@ first:
   end
 
   context "with a definition comprising two stages" do
-    let(:commit) { mock(:commit) }
+    let(:commit) { double(:commit) }
     let(:definition) do
       <<-EOS
 ---
@@ -50,7 +51,7 @@ second:
   end
 
   context "with a definition comprising two out of order stages" do
-    let(:commit) { mock(:commit) }
+    let(:commit) { double(:commit) }
     let(:definition) do
       <<-EOS
 ---
@@ -78,7 +79,7 @@ first:
   end 
 
   context "with a diamond dependency" do
-    let(:commit) { mock(:commit) }
+    let(:commit) { double(:commit) }
     let(:definition) do
       <<-EOS
 ---
@@ -124,7 +125,7 @@ third:
 
     context "all stages have passed" do
       before do
-        commit.stub(:result).and_return(mock(:commit, :message => 'PASS bt loves you'))
+        allow(commit).to receive(:result).and_return(double(:commit, :message => 'PASS bt loves you'))
       end
 
       its(:status) { should == 'PASS' }
@@ -132,8 +133,8 @@ third:
 
     context "one of the second stages fails and the other passes" do
       before do
-        commit.stub(:result).and_return(nil)
-        commit.stub(:result).with('secondA').and_return(mock(:commit, :message => 'FAIL bt loves you'))
+        allow(commit).to receive(:result).and_return(nil)
+        allow(commit).to receive(:result).with('secondA').and_return(double(:commit, :message => 'FAIL bt loves you'))
       end
 
       its(:status) { should == "FAIL" }
@@ -141,7 +142,7 @@ third:
   end
 
   context "with a definition comprising three out of order stages" do
-    let(:commit) { mock(:commit) }
+    let(:commit) { double(:commit) }
     let(:definition) do
       <<-EOS
 ---
@@ -195,7 +196,7 @@ first:
 
     context "all stages have passed" do
       before do
-        commit.stub(:result).and_return(mock(:commit, :message => 'PASS bt loves you'))
+        allow(commit).to receive(:result).and_return(double(:commit, :message => 'PASS bt loves you'))
       end
 
       its(:status) { should == 'PASS' }
@@ -203,23 +204,23 @@ first:
 
     context "second stage failed" do
       before do
-        commit.stub(:result).and_return(nil)
-        commit.stub(:result).with('second').and_return(mock(:commit, :message => 'FAIL bt loves you'))
+        allow(commit).to receive(:result).and_return(nil)
+        allow(commit).to receive(:result).with('second').and_return(double(:commit, :message => 'FAIL bt loves you'))
       end
 
       its(:status) { should == 'FAIL' }
     end
 
     context "stages not failed nor all passed" do
-      before { commit.stub(:result).and_return(nil) }
+      before { allow(commit).to receive(:result).and_return(nil) }
 
       its(:status) { should == 'UNKNOWN' }
     end
 
     context "no stages failed and some passed" do
       before do
-        commit.stub(:result).and_return(nil)
-        commit.stub(:result).with("first").and_return(mock(:commit, :message => 'PASS bt loves you'))
+        allow(commit).to receive(:result).and_return(nil)
+        allow(commit).to receive(:result).with("first").and_return(double(:commit, :message => 'PASS bt loves you'))
       end
 
       its(:status) { should == 'INCOMPLETE' }

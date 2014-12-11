@@ -1,4 +1,4 @@
-require 'support/project'
+require 'support/spec_helper'
 require 'forwardable'
 require 'grit'
 require 'bt/yaml'

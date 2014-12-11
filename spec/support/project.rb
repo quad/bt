@@ -183,7 +183,7 @@ RSpec::Matchers.define :have_bt_ref do |stage, commit|
     project.bt_ref(stage, commit)
   end
 
-  failure_message_for_should do |commit|
+  failure_message do |commit|
     "Expected commit #{commit.inspect} to have stage \"#{stage}\""
   end
 end
@@ -203,7 +203,7 @@ RSpec::Matchers.define :have_blob do |name|
     end
   end
 
-  failure_message_for_should do |commit|
+  failure_message do |commit|
     msg = "Expected #{commit.inspect} to have blob '#{name}'"
     msg << " containing '#{@content.inspect}' but got '#{@blob.data.inspect}'" if @blob && @content
     msg
@@ -228,51 +228,49 @@ RSpec::Matchers.define :have_results_for do |commit|
     @include_stages = stages
   end
 
-  failure_message_for_should do |project|
+  failure_message do |project|
     "expected project to have results for #{commit.sha}"
   end
 end
 
-class RSpec::Matchers::Matcher
-  def within options = {}
-    WithinMatcher.new self, options
+module TimingMatchers
+  extend RSpec::Matchers::DSL
+
+  def within matcher, options = {}
+    WithinMatcher.new matcher, options
   end
 
-  def eventually
-    within :timeout => 20, :interval => 1
+  def eventually matcher
+    within matcher, :timeout => 20, :interval => 1
   end
-end
 
-module RSpec
-  module Matchers
-    class WithinMatcher
-      def initialize matcher, options
-        @matcher = matcher
-        @options = {:interval => 0.1, :timeout => 1}.merge(options)
-      end
+  class WithinMatcher
+    def initialize matcher, options
+      @matcher = matcher
+      @options = {:interval => 0.1, :timeout => 1}.merge(options)
+    end
 
-      def matches? actual
-        Timeout.timeout(@options[:timeout]) do
-          until @matcher.matches?(actual)
-            sleep @options[:interval]
-          end
+    def matches? actual
+      Timeout.timeout(@options[:timeout]) do
+        until @matcher.matches?(actual)
+          sleep @options[:interval]
         end
-        true
-      rescue Timeout::Error
-        false
       end
+      true
+    rescue Timeout::Error
+      false
+    end
 
-      def description
-        "#{@matcher.description} within #{@options[:timeout]} seconds"
-      end
+    def description
+      "#{@matcher.description} within #{@options[:timeout]} seconds"
+    end
 
-      def failure_message_for_should
-        "#{@matcher.failure_message_for_should} within #{@options[:timeout]} seconds"
-      end
+    def failure_message
+      "#{@matcher.failure_message_for_should} within #{@options[:timeout]} seconds"
+    end
 
-      def failure_message_for_should_not
-        "#{@matcher.failure_message_for_should_not} within #{@options[:timeout]} seconds"
-      end
+    def failure_message
+      "#{@matcher.failure_message_for_should_not} within #{@options[:timeout]} seconds"
     end
   end
 end

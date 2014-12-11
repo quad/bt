@@ -1,3 +1,4 @@
+require 'support/spec_helper'
 require 'bt'
 require 'bt/yaml'
 require 'support/file_builder'
@@ -11,7 +12,7 @@ describe StageSpecification do
     f.content <<-EOS
 #!/usr/bin/env ruby
 require 'yaml'
-y({'stage' => {'results' => [], 'needs' => [], 'run' => 'exit 0'}})
+puts ({'stage' => {'results' => [], 'needs' => [], 'run' => 'exit 0'}}).to_yaml
     EOS
   end
 

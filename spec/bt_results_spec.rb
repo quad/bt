@@ -1,4 +1,4 @@
-require 'support/project'
+require 'support/spec_helper'
 require 'json'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
