@@ -68,7 +68,7 @@ module BT
       end
 
       def respond
-        response = @responses.detect { |response| @app.request.accept.include? response[:content_type] } 
+        response = @responses.detect { |response| @app.request.accept.map(&:to_s).include? response[:content_type] }
         @app.content_type response[:content_type]
         @app.body response[:content_proc].call
       end
