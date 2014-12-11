@@ -3,6 +3,6 @@
 require './lib/bt/version'
 require 'yaml'
 
-y 'gem' => {'run' => 'bundle install --no-color --local && bundle exec rake build',
+puts ({'gem' => {'run' => 'bundle install --no-color --local && bundle exec rake build',
             'results' => ["pkg/build-thing-#{BT::VERSION}.gem"],
-            'needs' => ['spec']}
+            'needs' => ['spec']}}).to_yaml
