@@ -1,20 +1,21 @@
+require 'support/spec_helper'
 require 'bt'
 
 include BT
 
 describe "a stage with no needs" do
-  let(:commit) { mock(:commit, :result => nil) }
+  let(:commit) { double(:commit, :result => nil) }
 
   subject { Stage.new commit, 'first', {'run' => 'exit 0', 'results' => [], 'needs' => []} }
 
   it { should be_ready }
 
   context "with a result" do
-    let(:result) { mock(:result, :message => message) }
+    let(:result) { double(:result, :message => message) }
 
-    before { commit.stub(:result).and_return(result) }
+    before { allow(commit).to receive(:result).and_return(result) }
 
-   context "which was a pass" do
+    context "which was a pass" do
       let(:message) { 'PASS bt loves you' }
 
       it { should be_done }
@@ -35,7 +36,7 @@ describe "a stage with no needs" do
 end
 
 describe "an incomplete stage" do
-  let(:commit) { mock(:commit, :result => nil) }
+  let(:commit) { double(:commit, :result => nil) }
 
   subject do
     Stage.new commit, 'first', {
@@ -46,13 +47,13 @@ describe "an incomplete stage" do
   end
 
   context "with satisfied needs" do
-    let(:needs) { [mock(:stage, :ok? => true), mock(:stage, :ok? => true)] }
+    let(:needs) { [double(:stage, :ok? => true), double(:stage, :ok? => true)] }
 
     it { should be_ready }
   end
 
   context "with unsatisfied needs" do
-    let(:needs) { [mock(:stage, :ok? => true), mock(:stage, :ok? => false)] }
+    let(:needs) { [double(:stage, :ok? => true), double(:stage, :ok? => false)] }
 
     it { should_not be_ready }
   end

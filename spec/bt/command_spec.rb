@@ -1,3 +1,4 @@
+require 'support/spec_helper'
 require 'bt'
 
 describe BT::Command do

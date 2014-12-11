@@ -1,4 +1,4 @@
-require 'support/project'
+require 'support/spec_helper'
 require 'json'
 
 ENV['PATH'] = File.join(File.dirname(__FILE__), '/../bin') + ':' + ENV['PATH']
@@ -67,10 +67,10 @@ second:
       p.stage_generator :generator, <<-eos
 #!/usr/bin/env ruby
 require 'yaml'
-y ({
+puts ({
    'stage' => {'run' => 'exit 0', 'needs' => [], 'results' => []},
    'another' => {'run' => 'exit 0', 'needs' => [], 'results' => []}
-})
+}).to_yaml
       eos
 
       p.file 'stages/lib/', 'stage', <<-eos

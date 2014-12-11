@@ -19,10 +19,12 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   s.add_development_dependency('rspec')
+  s.add_development_dependency('rspec-its')
+  s.add_development_dependency('rspec-collection_matchers')
   s.add_development_dependency('rake')
   s.add_dependency('dnssd')
   s.add_dependency('andand')
-  s.add_dependency('grit')
+  s.add_dependency('grit', '2.4.1')
   s.add_dependency('trollop')
   s.add_dependency('uuid')
   s.add_dependency('sinatra')
